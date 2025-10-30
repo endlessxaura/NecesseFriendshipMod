@@ -48,6 +48,9 @@ friendship score goes from -100 to 100. All relationships start out at 0.
 If an interaction is positive, determined by `interactionPositive`, they will 
 gain 1 friendship point. If it is negative, they will lose 1 friendship point.
 
+This is synchronized on spawn by modifying `EntityManager`'s constructor
+to send the `RelationshipPacket` alongside the `PacketSpawnMob` when a `HumanMob`
+
 At various thresholds, their relationship status changes.
 - 100: Devoted. +50 happiness bonus for rooming together. Will give you rare gifts.
 - 75: Best Friends. +30 happiness bonus for rooming together. Will give you gifts.

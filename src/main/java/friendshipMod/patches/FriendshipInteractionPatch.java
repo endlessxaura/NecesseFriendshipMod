@@ -1,5 +1,6 @@
 package friendshipMod.patches;
 
+import friendshipMod.FriendshipMod;
 import friendshipMod.data.Relationships;
 import friendshipMod.packets.RelationshipPacket;
 import necesse.engine.modLoader.annotations.ModMethodPatch;
@@ -27,14 +28,14 @@ public class FriendshipInteractionPatch {
                             new RelationshipPacket(mob, other, score + 1),
                             mob
                     );
-                    System.out.println("Positive interaction! New score: " + (score + 1));
+                    System.out.println(FriendshipMod.modId + ": Server update sent for (" + mob.getUniqueID() + ", " + other.getUniqueID() + ") with increment of 1");
                 } else {
                     relationships.setRelationship(mob, other, score - 1);
                     mob.getLevel().getServer().network.sendToClientsWithEntity(
                             new RelationshipPacket(mob, other, score - 1),
                             mob
                     );
-                    System.out.println("Negative interaction! New score: " + (score - 1));
+                    System.out.println(FriendshipMod.modId + ": Server update sent for (" + mob.getUniqueID() + ", " + other.getUniqueID() + ") with decrement of 1");
                 }
             }
         }

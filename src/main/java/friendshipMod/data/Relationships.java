@@ -1,5 +1,6 @@
 package friendshipMod.data;
 
+import friendshipMod.FriendshipMod;
 import necesse.engine.save.LoadData;
 import necesse.engine.save.SaveData;
 import necesse.engine.world.WorldEntity;
@@ -13,9 +14,6 @@ import java.util.Hashtable;
  * Each relationship has a score of -100 to 100, unfriendly to friendly.
  */
 public class Relationships extends WorldData {
-    private static final String firstFormatString = "relationship_%d_first";
-    private static final String secondFormatString = "relationship_%d_second";
-    private static final String valueFormatString = "relationship_%d_value";
     private static final Integer max = 100;
     private static final Integer min = -100;
     private static final Integer defaultScore = 0;
@@ -25,10 +23,14 @@ public class Relationships extends WorldData {
     /**
      * Stores a matrix of unique mob IDs and their friendship scores.
      */
-    protected Hashtable<Association, Integer> associations;
+    protected Hashtable<Association, Integer> associationScores;
 
     public Relationships() {
-        associations = new Hashtable<Association, Integer>(30);
+        associationScores = new Hashtable<Association, Integer>(30);
+    }
+
+    public String associationOutput(Association association) {
+        return association.toString() + " = " + associationScores.get(association);
     }
 
     public static Relationships getRelationships(WorldEntity worldEntity) {
@@ -49,12 +51,24 @@ public class Relationships extends WorldData {
         }
     }
 
+    public Hashtable<Association, Integer> getAll() {
+        return associationScores;
+    }
+
+    public Hashtable<Association, Integer> getRelationshipsFor(Mob mob) {
+        return getRelationshipsFor(mob.getUniqueID());
+    }
+
     public Hashtable<Association, Integer> getRelationshipsFor(Integer mobId) {
         Hashtable<Association, Integer> associationsFor = new Hashtable<Association, Integer>();
-        for (Association key : associations.keySet()) {
-            associationsFor.put(key, associations.get(key));
+        for (Association key : associationScores.keySet()) {
+            associationsFor.put(key, associationScores.get(key));
         }
         return associationsFor;
+    }
+
+    public int getRelationship(Association association) {
+        return getRelationship(association.mobIds[0], association.mobIds[1]);
     }
 
     public int getRelationship(Mob firstMob, Mob secondMob) {
@@ -63,25 +77,22 @@ public class Relationships extends WorldData {
 
     public int getRelationship(Integer firstMobId, Integer secondMobId) {
         Association rel = new Association(firstMobId, secondMobId);
-        if (associations.containsKey(rel)) {
-            return associations.get(rel);
+        if (associationScores.containsKey(rel)) {
+            return associationScores.get(rel);
         }
-        // TODO: packet request
-//        else if (isClient()) {
-//        }
         else {
-            associations.put(rel, defaultScore);
-            return associations.get(rel);
+            associationScores.put(rel, defaultScore);
+            return associationScores.get(rel);
         }
     }
 
     public void setRelationship(Association rel, Integer value) {
         if (value < min) {
-            associations.put(rel, min);
+            associationScores.put(rel, min);
         } else if (value > max) {
-            associations.put(rel, max);
+            associationScores.put(rel, max);
         } else {
-            associations.put(rel, value);
+            associationScores.put(rel, value);
         }
     }
 
@@ -98,10 +109,30 @@ public class Relationships extends WorldData {
     @Override
     public void addSaveData(SaveData save) {
         super.addSaveData(save);
+        save.addInt(FriendshipMod.modId + "RelationshipsSize", associationScores.size());
+        int i = 0;
+        for (Association association : associationScores.keySet()) {
+            save.addInt(FriendshipMod.modId + "Relationship" + i + "First", association.first());
+            save.addInt(FriendshipMod.modId + "Relationship" + i + "Second", association.second());
+            save.addInt(FriendshipMod.modId + "Relationship" + i + "Value", associationScores.get(association));
+            i++;
+            System.out.println(FriendshipMod.modId + ": Saved " + associationOutput((association)));
+        }
+        System.out.println(FriendshipMod.modId + ": Saved " + associationScores.size() + " relationships");
     }
 
     @Override
     public void applyLoadData(LoadData save) {
         super.applyLoadData(save);
+        int size = save.getInt(FriendshipMod.modId + "RelationshipsSize", 0);
+        for (int i = 0; i < size; i++) {
+            int first = save.getInt(FriendshipMod.modId + "Relationship" + i + "First");
+            int second = save.getInt(FriendshipMod.modId + "Relationship" + i + "Second");
+            int value = save.getInt(FriendshipMod.modId + "Relationship" + i + "Value");
+            Association association = new Association(first, second);
+            associationScores.put(association, value);
+            System.out.println(FriendshipMod.modId + ": Loaded " + associationOutput(association));
+        }
+        System.out.println(FriendshipMod.modId + ": Loaded " + associationScores.size() + " relationships");
     }
 }

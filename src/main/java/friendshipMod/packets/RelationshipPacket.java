@@ -1,10 +1,12 @@
 package friendshipMod.packets;
 
+import friendshipMod.FriendshipMod;
 import friendshipMod.data.Association;
 import friendshipMod.data.Relationships;
 import necesse.engine.network.NetworkPacket;
 import necesse.engine.network.Packet;
 import necesse.engine.network.PacketReader;
+import necesse.engine.network.PacketWriter;
 import necesse.engine.network.client.Client;
 import necesse.engine.network.server.Server;
 import necesse.engine.network.server.ServerClient;
@@ -28,6 +30,10 @@ public class RelationshipPacket extends Packet {
     public RelationshipPacket(Association association, int value) {
         this.association = association;
         this.value = value;
+        PacketWriter writer = new PacketWriter(this);
+        writer.putNextInt(association.mobIds[0]);
+        writer.putNextInt(association.mobIds[1]);
+        writer.putNextInt(value);
     }
 
     public RelationshipPacket(Mob firstMob, Mob secondMob, int value) {
@@ -43,6 +49,7 @@ public class RelationshipPacket extends Packet {
     public void applyPacket(WorldEntity worldEntity) {
         Relationships relationships = Relationships.getRelationships(worldEntity);
         relationships.setRelationship(association, value);
+        System.out.println(FriendshipMod.modId + ": RelationshipPacket applied at " + (worldEntity.isServer() ? "server" : "client"));
     }
 
     @Override

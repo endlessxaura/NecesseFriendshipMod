@@ -32,6 +32,14 @@ public class Association {
         return mobIdStream.allMatch(x -> x.equals(other.mobIds[0]) || x.equals(other.mobIds[1]));
     }
 
+    public int first() { return mobIds[0]; }
+    public int second() { return mobIds[1]; }
+
+    @Override
+    public int hashCode() {
+        return toString().hashCode();
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == null) return false;
