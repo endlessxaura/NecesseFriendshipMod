@@ -2,6 +2,7 @@ package friendshipMod.packets;
 
 import friendshipMod.FriendshipMod;
 import friendshipMod.data.Association;
+import friendshipMod.data.Relationship;
 import friendshipMod.data.Relationships;
 import necesse.engine.network.NetworkPacket;
 import necesse.engine.network.Packet;
@@ -13,6 +14,7 @@ import necesse.engine.network.server.ServerClient;
 import necesse.engine.world.WorldEntity;
 
 import java.util.Hashtable;
+import java.util.List;
 
 public class RelationshipsPacket extends Packet {
     Hashtable<Association, Integer> associationScores;
@@ -32,14 +34,14 @@ public class RelationshipsPacket extends Packet {
         }
     }
 
-    public RelationshipsPacket(Hashtable<Association, Integer> relationships) {
-        this.associationScores = relationships;
+    public RelationshipsPacket(List<Relationship> relationships) {
+        this.associationScores = new Hashtable<>(20);
         PacketWriter writer = new PacketWriter(this);
-        writer.putNextInt(associationScores.size());
-        for (Association association : associationScores.keySet()) {
-            writer.putNextInt(association.mobIds[0]);
-            writer.putNextInt(association.mobIds[1]);
-            writer.putNextInt(associationScores.get(association));
+        writer.putNextInt(relationships.size());
+        for (Relationship relationship : relationships) {
+            writer.putNextInt(relationship.getAssociation().first());
+            writer.putNextInt(relationship.getAssociation().second());
+            writer.putNextInt(relationship.score);
         }
     }
 

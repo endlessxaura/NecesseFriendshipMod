@@ -8,6 +8,8 @@ import necesse.engine.world.worldData.WorldData;
 import necesse.entity.mobs.Mob;
 
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * The world data for all the relationships between mobs
@@ -25,12 +27,9 @@ public class Relationships extends WorldData {
      */
     protected Hashtable<Association, Integer> associationScores;
 
+    // region Constructors
     public Relationships() {
         associationScores = new Hashtable<Association, Integer>(30);
-    }
-
-    public String associationOutput(Association association) {
-        return association.toString() + " = " + associationScores.get(association);
     }
 
     public static Relationships getRelationships(WorldEntity worldEntity) {
@@ -50,40 +49,54 @@ public class Relationships extends WorldData {
             return instance;
         }
     }
+    // endregion
 
-    public Hashtable<Association, Integer> getAll() {
-        return associationScores;
+    // region Accessors
+    public List<Relationship> getAll() {
+        List<Relationship> associations = new LinkedList<Relationship>();
+        for (Association key : associationScores.keySet()) {
+            associations.add(new Relationship(key, associationScores.get(key)));
+        }
+        return associations;
     }
 
-    public Hashtable<Association, Integer> getRelationshipsFor(Mob mob) {
+    public List<Relationship> getRelationshipsFor(Mob mob) {
         return getRelationshipsFor(mob.getUniqueID());
     }
 
-    public Hashtable<Association, Integer> getRelationshipsFor(Integer mobId) {
-        Hashtable<Association, Integer> associationsFor = new Hashtable<Association, Integer>();
+    public List<Relationship> getRelationshipsFor(Integer mobId) {
+        List<Relationship> associationsFor = new LinkedList<Relationship>();
         for (Association key : associationScores.keySet()) {
-            associationsFor.put(key, associationScores.get(key));
+            if (key.isFor(mobId)) {
+                associationsFor.add(new Relationship(key, associationScores.get(key)));
+            }
         }
         return associationsFor;
     }
 
-    public int getRelationship(Association association) {
+    public Relationship getRelationship(Association association) {
         return getRelationship(association.mobIds[0], association.mobIds[1]);
     }
 
-    public int getRelationship(Mob firstMob, Mob secondMob) {
+    public Relationship getRelationship(Mob firstMob, Mob secondMob) {
         return getRelationship(firstMob.getUniqueID(), secondMob.getUniqueID());
     }
 
-    public int getRelationship(Integer firstMobId, Integer secondMobId) {
+    public Relationship getRelationship(Integer firstMobId, Integer secondMobId) {
         Association rel = new Association(firstMobId, secondMobId);
         if (associationScores.containsKey(rel)) {
-            return associationScores.get(rel);
+            return new Relationship(rel, associationScores.get(rel));
         }
         else {
             associationScores.put(rel, defaultScore);
-            return associationScores.get(rel);
+            return new Relationship(rel, associationScores.get(rel));
         }
+    }
+    // endregion
+
+    // region Mutators
+    public void setRelationship(Relationship relationship) {
+        setRelationship(relationship.getAssociation(), relationship.score);
     }
 
     public void setRelationship(Association rel, Integer value) {
@@ -105,7 +118,9 @@ public class Relationships extends WorldData {
         Association rel = new Association(firstMobId, secondMobId);
         setRelationship(rel, value);
     }
+    // endregion
 
+    // region WorldEntity
     @Override
     public void addSaveData(SaveData save) {
         super.addSaveData(save);
@@ -134,5 +149,10 @@ public class Relationships extends WorldData {
             System.out.println(FriendshipMod.modId + ": Loaded " + associationOutput(association));
         }
         System.out.println(FriendshipMod.modId + ": Loaded " + associationScores.size() + " relationships");
+    }
+    // endregion
+
+    public String associationOutput(Association association) {
+        return association.toString() + " = " + associationScores.get(association);
     }
 }

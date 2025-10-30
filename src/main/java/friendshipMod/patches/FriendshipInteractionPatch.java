@@ -1,6 +1,7 @@
 package friendshipMod.patches;
 
 import friendshipMod.FriendshipMod;
+import friendshipMod.data.Relationship;
 import friendshipMod.data.Relationships;
 import friendshipMod.packets.RelationshipPacket;
 import necesse.engine.modLoader.annotations.ModMethodPatch;
@@ -21,22 +22,18 @@ public class FriendshipInteractionPatch {
         if (mob.isServer()) {
             if (stageTicker == 80) {
                 Relationships relationships = Relationships.getRelationships(mob.getWorldEntity());
-                int score = relationships.getRelationship(mob, other);
+                Relationship relationship = relationships.getRelationship(mob, other);
                 if (interactionPositive) {
-                    relationships.setRelationship(mob, other, score + 1);
-                    mob.getLevel().getServer().network.sendToClientsWithEntity(
-                            new RelationshipPacket(mob, other, score + 1),
-                            mob
-                    );
-                    System.out.println(FriendshipMod.modId + ": Server update sent for (" + mob.getUniqueID() + ", " + other.getUniqueID() + ") with increment of 1");
+                    relationship.score += 1;
                 } else {
-                    relationships.setRelationship(mob, other, score - 1);
-                    mob.getLevel().getServer().network.sendToClientsWithEntity(
-                            new RelationshipPacket(mob, other, score - 1),
-                            mob
-                    );
-                    System.out.println(FriendshipMod.modId + ": Server update sent for (" + mob.getUniqueID() + ", " + other.getUniqueID() + ") with decrement of 1");
+                    relationship.score -= 1;
                 }
+                relationships.setRelationship(relationship);
+                mob.getLevel().getServer().network.sendToClientsWithEntity(
+                    new RelationshipPacket(relationship),
+                    mob
+                );
+                System.out.println(FriendshipMod.modId + ": Server update sent for (" + mob.getUniqueID() + ", " + other.getUniqueID() + ")");
             }
         }
     }

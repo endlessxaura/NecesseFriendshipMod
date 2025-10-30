@@ -2,6 +2,7 @@ package friendshipMod.packets;
 
 import friendshipMod.FriendshipMod;
 import friendshipMod.data.Association;
+import friendshipMod.data.Relationship;
 import friendshipMod.data.Relationships;
 import necesse.engine.network.NetworkPacket;
 import necesse.engine.network.Packet;
@@ -14,41 +15,30 @@ import necesse.engine.world.WorldEntity;
 import necesse.entity.mobs.Mob;
 
 public class RelationshipPacket extends Packet {
-    public final Association association;
-    public final Integer value;
+    public Relationship relationship;
 
     public RelationshipPacket(byte[] data) {
         super(data);
         PacketReader reader = new PacketReader(this);
-        association = new Association(
+        Association association = new Association(
             reader.getNextInt(),
             reader.getNextInt()
         );
-        value = reader.getNextInt();
+        int value = reader.getNextInt();
+        relationship = new Relationship(association, value);
     }
 
-    public RelationshipPacket(Association association, int value) {
-        this.association = association;
-        this.value = value;
+    public RelationshipPacket(Relationship relationship) {
+        this.relationship = relationship;
         PacketWriter writer = new PacketWriter(this);
-        writer.putNextInt(association.mobIds[0]);
-        writer.putNextInt(association.mobIds[1]);
-        writer.putNextInt(value);
-    }
-
-    public RelationshipPacket(Mob firstMob, Mob secondMob, int value) {
-        this.association = new Association(firstMob.getUniqueID(), secondMob.getUniqueID());
-        this.value = value;
-    }
-
-    public RelationshipPacket(Integer firstMobId, Integer secondMobId, int value) {
-        this.association = new Association(firstMobId, secondMobId);
-        this.value = value;
+        writer.putNextInt(relationship.getAssociation().first());
+        writer.putNextInt(relationship.getAssociation().second());
+        writer.putNextInt(relationship.score);
     }
 
     public void applyPacket(WorldEntity worldEntity) {
         Relationships relationships = Relationships.getRelationships(worldEntity);
-        relationships.setRelationship(association, value);
+        relationships.setRelationship(relationship);
         System.out.println(FriendshipMod.modId + ": RelationshipPacket applied at " + (worldEntity.isServer() ? "server" : "client"));
     }
 

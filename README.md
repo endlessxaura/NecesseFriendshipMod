@@ -48,19 +48,25 @@ friendship score goes from -100 to 100. All relationships start out at 0.
 If an interaction is positive, determined by `interactionPositive`, they will 
 gain 1 friendship point. If it is negative, they will lose 1 friendship point.
 
-This is synchronized on spawn by modifying `EntityManager`'s constructor
-to send the `RelationshipPacket` alongside the `PacketSpawnMob` when a `HumanMob`
+This is synchronized on spawn by modifying `PacketSpawnMob.processServer`
+to send the `RelationshipPacket` after the player is spawned.
 
-At various thresholds, their relationship status changes.
-- 100: Devoted. +50 happiness bonus for rooming together. Will give you rare gifts.
-- 75: Best Friends. +30 happiness bonus for rooming together. Will give you gifts.
-- 50: Friends. +20 happiness bonus for rooming together.
-- 25: Friendly. +10 happiness bonus for rooming together.
-- 0: Acquaintances. No benefits.
-- -25: Unfriendly. -10 happiness penalty for rooming together.
-- -50: Quarreling. -20 happiness penalty for rooming together.
+At various thresholds, their relationship status changes. Note that happiness changes
+are in addition to existing happiness modifiers. People at the Friends status have
+functionally no change in happiness for rooming together, for example.
+- 100: Beloved. +50 happiness bonus for rooming together. Will give you rare gifts.
+- 75: Companions. +30 happiness bonus for rooming together. Will give you gifts.
+- 50: Confidants. +20 happiness bonus for rooming together.
+- 25: Friends. +10 happiness bonus for rooming together.
+- 0: Acquaintance. No benefits.
+- -25: Irritants. -10 happiness penalty for rooming together.
+- -50: Opponents. -20 happiness penalty for rooming together.
 - -75: Enemies. -30 happiness penalty for rooming together. Will fight on negative interaction.
 - -100: Nemeses. -50 happiness penalty for rooming together. Will fight on sight.
+
+These are accomplished via the following:
+- Rooming happiness: A patch to `SettlementRoom.calculateHappinessModifiers` modifies
+the bonuses and penalties of sharing a room.
 
 This score is kept internally. It is recorded via packets on the server, which
 get sent to the client on interaction.
