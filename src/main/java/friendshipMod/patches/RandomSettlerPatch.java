@@ -30,6 +30,7 @@ public class RandomSettlerPatch {
         List<Relationship> mobRelationships = relationships.getRelationshipsFor(mob);
         return mobRelationships
                 .stream()
+                .filter(x -> x.getAssociation().first() != mob.getUniqueID() && x.getAssociation().second() != mob.getUniqueID())
                 .map(x -> {
                     if (x.getAssociation().first() != mob.getUniqueID()) {
                         return x.getAssociation().first();

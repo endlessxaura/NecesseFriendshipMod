@@ -16,11 +16,11 @@ import java.util.List;
  * Each relationship has a score of -100 to 100, unfriendly to friendly.
  */
 public class Relationships extends WorldData {
-    private static final Integer max = 100;
-    private static final Integer min = -100;
     private static final Integer defaultScore = 0;
     public static final String dataKey = FriendshipMod.modId + "Relationships";
     private static Relationships instance;
+    public static final Integer max = 100;
+    public static final Integer min = -100;
 
     /**
      * Stores a matrix of unique mob IDs and their friendship scores.
@@ -52,6 +52,10 @@ public class Relationships extends WorldData {
     // endregion
 
     // region Accessors
+    public static int getRange() {
+        return Math.abs(max) + Math.abs(min);
+    }
+
     public List<Relationship> getAll() {
         List<Relationship> associations = new LinkedList<Relationship>();
         for (Association key : associationScores.keySet()) {
@@ -100,14 +104,12 @@ public class Relationships extends WorldData {
     }
 
     public void setRelationship(Association rel, Integer value) {
-        if (rel.first() != rel.second()) {
-            if (value < min) {
-                associationScores.put(rel, min);
-            } else if (value > max) {
-                associationScores.put(rel, max);
-            } else {
-                associationScores.put(rel, value);
-            }
+        if (value < min) {
+            associationScores.put(rel, min);
+        } else if (value > max) {
+            associationScores.put(rel, max);
+        } else {
+            associationScores.put(rel, value);
         }
     }
 
@@ -133,7 +135,7 @@ public class Relationships extends WorldData {
             save.addInt(FriendshipMod.modId + "Relationship" + i + "Second", association.second());
             save.addInt(FriendshipMod.modId + "Relationship" + i + "Value", associationScores.get(association));
             i++;
-            System.out.println(FriendshipMod.modId + ": Saved " + associationOutput((association)));
+//            System.out.println(FriendshipMod.modId + ": Saved " + associationOutput((association)));
         }
         System.out.println(FriendshipMod.modId + ": Saved " + associationScores.size() + " relationships");
     }
@@ -148,7 +150,7 @@ public class Relationships extends WorldData {
             int value = save.getInt(FriendshipMod.modId + "Relationship" + i + "Value");
             Association association = new Association(first, second);
             associationScores.put(association, value);
-            System.out.println(FriendshipMod.modId + ": Loaded " + associationOutput(association));
+//            System.out.println(FriendshipMod.modId + ": Loaded " + associationOutput(association));
         }
         System.out.println(FriendshipMod.modId + ": Loaded " + associationScores.size() + " relationships");
     }
