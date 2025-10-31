@@ -1,6 +1,7 @@
 package friendshipMod.patches;
 
 
+import friendshipMod.FriendshipMod;
 import friendshipMod.data.Relationships;
 import friendshipMod.packets.RelationshipsPacket;
 import necesse.engine.modLoader.annotations.ModMethodPatch;
@@ -20,7 +21,7 @@ public class RelationshipsOnMobSpawnMethodPatch {
             Relationships relationships = Relationships.getRelationships(entityManager.level.getWorldEntity());
             RelationshipsPacket packet = new RelationshipsPacket(relationships.getRelationshipsFor(mob));
             entityManager.level.getServer().network.sendToClientsWithEntity(packet, mob);
-            System.out.println("FriendshipMod: Server sent relationships for " + mob.getDisplayName());
+            System.out.println(FriendshipMod.modId + ": Server sent relationships for " + mob.getDisplayName());
         }
     }
 

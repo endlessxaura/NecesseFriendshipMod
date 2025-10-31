@@ -12,6 +12,9 @@ import net.bytebuddy.asm.Advice;
 
 import java.util.List;
 
+/**
+ * This adds the roommate relationship modifier to the happiness modifiers.
+ */
 @ModMethodPatch(target = HumanMob.class, name = "getHappinessModifiers", arguments = {})
 public class SettlementRoomHappinessPatch {
     @Advice.OnMethodExit

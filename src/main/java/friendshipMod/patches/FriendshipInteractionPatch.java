@@ -3,12 +3,19 @@ package friendshipMod.patches;
 import friendshipMod.FriendshipMod;
 import friendshipMod.data.Relationship;
 import friendshipMod.data.Relationships;
+import friendshipMod.data.Ticket;
+import friendshipMod.data.TicketManager;
 import friendshipMod.packets.RelationshipPacket;
 import necesse.engine.modLoader.annotations.ModMethodPatch;
+import necesse.engine.util.GameRandom;
 import necesse.entity.mobs.ai.behaviourTree.Blackboard;
 import necesse.entity.mobs.ai.behaviourTree.leaves.HumanInteractWithSettlerAINode;
 import necesse.entity.mobs.friendly.human.HumanMob;
 import net.bytebuddy.asm.Advice;
+import net.bytebuddy.utility.RandomString;
+
+import java.util.Optional;
+import java.util.Random;
 
 @ModMethodPatch(target = HumanInteractWithSettlerAINode.class, name = "tickNode", arguments = {HumanMob.class, Blackboard.class})
 public class FriendshipInteractionPatch {
@@ -17,9 +24,29 @@ public class FriendshipInteractionPatch {
                        @Advice.Argument(0) HumanMob mob,
                        @Advice.Argument(1) Blackboard<HumanMob> blackboard,
                        @Advice.FieldValue("settlerCurrentlyInteractingWith") HumanMob other,
-                       @Advice.FieldValue("interactionPositive") boolean interactionPositive,
+                       @Advice.FieldValue(value = "interactionPositive", readOnly = false) boolean interactionPositive,
                        @Advice.FieldValue("currentInteractionStageTicker") int stageTicker) {
         if (mob.isServer()) {
+
+            if (stageTicker == 20) {
+                Relationships relationships = Relationships.getRelationships(mob.getWorldEntity());
+                Relationship relationship = relationships.getRelationship(mob, other);
+                Optional<Ticket> decidedTicket = TicketManager.getTicketManager(mob.getWorldEntity()).popDecidedTicket(mob.getUniqueID());
+                if (decidedTicket.isPresent()) {
+                    if (decidedTicket.get().kind == Ticket.Kind.Human) {
+                        Relationship relationshipWithTicket = relationships.getRelationship(mob.getUniqueID(), decidedTicket.get().ticketId);
+                        Relationship otherRelationshipWithTicket = relationships.getRelationship(other.getUniqueID(), decidedTicket.get().ticketId);
+                        float distance;
+                        if (relationshipWithTicket.score > otherRelationshipWithTicket.score) {
+                            distance = relationshipWithTicket.score - otherRelationshipWithTicket.score;
+                        } else {
+                            distance = otherRelationshipWithTicket.score - relationshipWithTicket.score;
+                        }
+                        interactionPositive = GameRandom.globalRandom.getChance((200f - distance) / 200f);
+                    }
+                }
+            }
+
             if (stageTicker == 80) {
                 Relationships relationships = Relationships.getRelationships(mob.getWorldEntity());
                 Relationship relationship = relationships.getRelationship(mob, other);

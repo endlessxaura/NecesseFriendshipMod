@@ -1,6 +1,7 @@
 package friendshipMod;
 
 import friendshipMod.data.Relationships;
+import friendshipMod.data.TicketManager;
 import friendshipMod.packets.RelationshipPacket;
 import friendshipMod.packets.RelationshipsPacket;
 import necesse.engine.modLoader.annotations.ModEntry;
@@ -15,6 +16,7 @@ public class FriendshipMod
 
     public void init() {
         WorldDataRegistry.registerWorldData(Relationships.dataKey, Relationships.class);
+        WorldDataRegistry.registerWorldData(TicketManager.dataKey, TicketManager.class);
         PacketRegistry.registerPacket(RelationshipPacket.class);
         PacketRegistry.registerPacket(RelationshipsPacket.class);
     }

@@ -19,7 +19,7 @@ public class Relationships extends WorldData {
     private static final Integer max = 100;
     private static final Integer min = -100;
     private static final Integer defaultScore = 0;
-    public static final String dataKey = "friendshipModRelationships";
+    public static final String dataKey = FriendshipMod.modId + "Relationships";
     private static Relationships instance;
 
     /**
@@ -100,12 +100,14 @@ public class Relationships extends WorldData {
     }
 
     public void setRelationship(Association rel, Integer value) {
-        if (value < min) {
-            associationScores.put(rel, min);
-        } else if (value > max) {
-            associationScores.put(rel, max);
-        } else {
-            associationScores.put(rel, value);
+        if (rel.first() != rel.second()) {
+            if (value < min) {
+                associationScores.put(rel, min);
+            } else if (value > max) {
+                associationScores.put(rel, max);
+            } else {
+                associationScores.put(rel, value);
+            }
         }
     }
 

@@ -54,7 +54,7 @@ to send the `RelationshipPacket` after the player is spawned.
 At various thresholds, their relationship status changes. Note that happiness changes
 are in addition to existing happiness modifiers. People at the Friends status have
 functionally no change in happiness for rooming together, for example.
-- 100: Beloved. +50 happiness bonus for rooming together. Will give you rare gifts.
+- 90 or more: Beloved. +50 happiness bonus for rooming together. Will give you rare gifts.
 - 75: Companions. +30 happiness bonus for rooming together. Will give you gifts.
 - 50: Confidants. +20 happiness bonus for rooming together.
 - 25: Friends. +10 happiness bonus for rooming together.
@@ -62,7 +62,7 @@ functionally no change in happiness for rooming together, for example.
 - -25: Irritants. -10 happiness penalty for rooming together.
 - -50: Opponents. -20 happiness penalty for rooming together.
 - -75: Enemies. -30 happiness penalty for rooming together. Will fight on negative interaction.
-- -100: Nemeses. -50 happiness penalty for rooming together. Will fight on sight.
+- -90 or less: Nemeses. -50 happiness penalty for rooming together. Will fight on sight.
 
 These are accomplished via the following:
 - Rooming happiness: A patch to `SettlementRoom.calculateHappinessModifiers` modifies
@@ -70,3 +70,10 @@ the bonuses and penalties of sharing a room.
 
 This score is kept internally. It is recorded via packets on the server, which
 get sent to the client on interaction.
+
+## TODO
+- Settler personalities
+- Talking to settlers
+    - This gives the player 1 friendship score
+- Giving gifts to settlers
+- Receiving gifts from settlers

@@ -34,7 +34,7 @@ public class Relationship {
 
     public Status getStatus() {
         if (relationshipStatus == null) {
-            if (score >= 100) {
+            if (score >= 90) {
                 relationshipStatus = Status.Beloved;
             } else if (score > 75) {
                 relationshipStatus = Status.Companion;
@@ -46,7 +46,7 @@ public class Relationship {
                 relationshipStatus = Status.Acquaintance;
             } else if (score > -75) {
                 relationshipStatus = Status.Irritant;
-            } else if (score > -100) {
+            } else if (score > -90) {
                 relationshipStatus = Status.Opponent;
             } else {
                 relationshipStatus = Status.Nemesis;
