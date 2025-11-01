@@ -93,7 +93,10 @@ public class Relationships extends WorldData {
 
     public Relationship getRelationship(Integer firstMobId, Integer secondMobId) {
         Association rel = new Association(firstMobId, secondMobId);
-        if (associationScores.containsKey(rel)) {
+        if (firstMobId.equals(secondMobId)) {
+            System.out.println(FriendshipMod.modId + ": WARNING - tried to get self-relationship with " + rel.first());
+            return new Relationship(rel, 0); // Relationships with self is always 0
+        } else if (associationScores.containsKey(rel)) {
             return new Relationship(rel, associationScores.get(rel));
         }
         else {
@@ -109,6 +112,10 @@ public class Relationships extends WorldData {
     }
 
     public void setRelationship(Association rel, Integer value) {
+        if (rel.first() == rel.second()) {
+            System.out.println(FriendshipMod.modId + ": WARNING - tried to save self-relationship with " + rel.first());
+            return; // We don't store relationships with self
+        }
         if (value < min) {
             associationScores.put(rel, min);
         } else if (value > max) {
@@ -154,7 +161,7 @@ public class Relationships extends WorldData {
             int second = save.getInt(FriendshipMod.modId + "Relationship" + i + "Second");
             int value = save.getInt(FriendshipMod.modId + "Relationship" + i + "Value");
             Association association = new Association(first, second);
-            associationScores.put(association, value);
+            setRelationship(association, value);
 //            System.out.println(FriendshipMod.modId + ": Loaded " + associationOutput(association));
         }
         System.out.println(FriendshipMod.modId + ": Loaded " + associationScores.size() + " relationships");

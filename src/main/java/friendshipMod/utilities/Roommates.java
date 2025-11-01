@@ -26,7 +26,10 @@ public class Roommates {
                 if (room.data.networkData.isTileWithinBounds(p.x, p.y)) {
                     SettlementBed bed = room.data.addOrValidateBed(p.x, p.y, true);
                     if (bed != null) {
-                        roommates.add(bed.getSettler().getMob().getMob());
+                        Mob bedMob = bed.getSettler().getMob().getMob();
+                        if (bedMob.getUniqueID() != person.getUniqueID()) {
+                            roommates.add(bed.getSettler().getMob().getMob());
+                        }
                     }
                 }
             }

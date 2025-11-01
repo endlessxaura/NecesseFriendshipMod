@@ -92,7 +92,7 @@ public class Personalities extends WorldData {
     @Override
     public void applyLoadData(LoadData save) {
         super.applyLoadData(save);
-        int size = save.getInt(FriendshipMod.modId + "PersonalitiesSize");
+        int size = save.getInt(FriendshipMod.modId + "PersonalitiesSize", 0);
         for (int i = 0; i < size; i++) {
             int mobId = save.getInt(FriendshipMod.modId + "Personality" + i + "Mob");
             Personality personality = loadPersonalityFromSave(save, i);

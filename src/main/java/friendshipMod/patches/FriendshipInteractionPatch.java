@@ -26,9 +26,10 @@ public class FriendshipInteractionPatch {
                        @Advice.FieldValue(value = "interactionPositive", readOnly = false) boolean interactionPositive,
                        @Advice.FieldValue("currentInteractionStageTicker") int stageTicker) {
         if (mob.isServer()) {
+            Personalities personalities = Personalities.getInstance(mob.getWorldEntity());
+            Relationships relationships = Relationships.getInstance(mob.getWorldEntity());
 
             if (stageTicker == 20) {
-                Relationships relationships = Relationships.getInstance(mob.getWorldEntity());
                 Relationship relationship = relationships.getRelationship(mob, other);
                 float relationshipPercent = (relationship.score + Math.abs(Relationships.min)) / (float)Relationships.getRange();
                 float relationshipChance = GameMath.lerp(relationshipPercent, 0, relationshipWeight);
@@ -50,7 +51,6 @@ public class FriendshipInteractionPatch {
                     }
 
                     if (decidedTicket.get().kind == Ticket.Kind.Item) {
-                        Personalities personalities = Personalities.getInstance(mob.getWorldEntity());
                         Personality personality = personalities.getPersonalityFor(mob);
                         Personality otherPersonality = personalities.getPersonalityFor(other);
                         if (
@@ -73,7 +73,6 @@ public class FriendshipInteractionPatch {
             }
 
             if (stageTicker == 80) {
-                Relationships relationships = Relationships.getInstance(mob.getWorldEntity());
                 Relationship relationship = relationships.getRelationship(mob, other);
                 if (interactionPositive) {
                     relationship.score += 1;

@@ -22,21 +22,21 @@ public class TicketManager extends WorldData {
     }
 
     public static TicketManager getTicketManager(WorldEntity worldEntity) {
-        if (worldEntity.isServer()) {
-            WorldData worldData = worldEntity.getWorldData(dataKey);
-            if (worldData != null) {
-                return (TicketManager) worldData;
+        if (instance == null) {
+            if (worldEntity.isServer()) {
+                WorldData worldData = worldEntity.getWorldData(dataKey);
+                if (worldData != null) {
+                    instance = (TicketManager) worldData;
+                } else {
+                    TicketManager newInstance = new TicketManager();
+                    worldEntity.addWorldData(dataKey, newInstance);
+                    instance = newInstance;
+                }
             } else {
-                TicketManager newInstance = new TicketManager();
-                worldEntity.addWorldData(dataKey, newInstance);
-                return newInstance;
-            }
-        } else {
-            if (instance == null) {
                 instance = new TicketManager();
             }
-            return instance;
         }
+        return instance;
     }
     // endregion
     
@@ -57,6 +57,7 @@ public class TicketManager extends WorldData {
             decidedMobs.remove(mobId);
         } else if (decidedItems.containsKey(mobId)) {
             decidedTicket = new Ticket(decidedItems.get(mobId).getID(), Ticket.Kind.Item);
+            decidedItems.remove(mobId);
         }
         return Optional.ofNullable(decidedTicket);
     }
