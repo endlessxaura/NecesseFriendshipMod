@@ -34,20 +34,22 @@ public class Relationship {
 
     public Status getStatus() {
         if (relationshipStatus == null) {
-            if (score >= 90) {
+            if (score >= 70) {
                 relationshipStatus = Status.Beloved;
-            } else if (score > 75) {
+            } else if (score > 45) {
                 relationshipStatus = Status.Companion;
-            } else if (score > 50) {
-                relationshipStatus = Status.Confidant;
             } else if (score > 25) {
+                relationshipStatus = Status.Confidant;
+            } else if (score > 10) {
                 relationshipStatus = Status.Friend;
-            } else if (score > -50) {
+            } else if (score > -10) {
                 relationshipStatus = Status.Acquaintance;
-            } else if (score > -75) {
+            } else if (score > -25) {
                 relationshipStatus = Status.Irritant;
-            } else if (score > -90) {
+            } else if (score > -45) {
                 relationshipStatus = Status.Opponent;
+            } else if (score > -70) {
+                relationshipStatus = Status.Enemy;
             } else {
                 relationshipStatus = Status.Nemesis;
             }

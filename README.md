@@ -54,15 +54,15 @@ to send the `RelationshipPacket` after the player is spawned.
 At various thresholds, their relationship status changes. Note that happiness changes
 are in addition to existing happiness modifiers. People at the Friends status have
 functionally no change in happiness for rooming together, for example.
-- 90 or more: Beloved. +50 happiness bonus for rooming together. Will give you rare gifts.
-- 75: Companions. +30 happiness bonus for rooming together. Will give you gifts.
-- 50: Confidants. +20 happiness bonus for rooming together.
-- 25: Friends. +10 happiness bonus for rooming together.
+- 70 or more: Beloved. +50 happiness bonus for rooming together. Will give you rare gifts.
+- 45: Companions. +30 happiness bonus for rooming together. Will give you gifts.
+- 25: Confidants. +20 happiness bonus for rooming together.
+- 10: Friends. +10 happiness bonus for rooming together.
 - 0: Acquaintance. No benefits.
-- -25: Irritants. -10 happiness penalty for rooming together.
-- -50: Opponents. -20 happiness penalty for rooming together.
-- -75: Enemies. -30 happiness penalty for rooming together. Will fight on negative interaction.
-- -90 or less: Nemeses. -50 happiness penalty for rooming together. Will fight on sight.
+- -10: Irritants. -10 happiness penalty for rooming together.
+- -25: Opponents. -20 happiness penalty for rooming together.
+- -45: Enemies. -30 happiness penalty for rooming together. Will fight on negative interaction.
+- -70 or less: Nemeses. -50 happiness penalty for rooming together. Will fight on sight.
 
 These are accomplished via the following:
 - Rooming happiness: A patch to `SettlementRoom.calculateHappinessModifiers` modifies
