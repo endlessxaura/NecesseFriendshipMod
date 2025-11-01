@@ -8,15 +8,12 @@ import necesse.engine.world.WorldEntity;
 import necesse.engine.world.worldData.WorldData;
 import necesse.entity.mobs.Mob;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class Personalities extends WorldData {
     public static final String dataKey = FriendshipMod.modId + "Personalities";
     private static Personalities instance;
-    private Hashtable<Integer, Personality> personalities;
+    private final Hashtable<Integer, Personality> personalities;
 
     //region Constructors
     public Personalities() {
@@ -48,34 +45,6 @@ public class Personalities extends WorldData {
     //endregion
 
     //region WorldData
-    private void addListToSave(SaveData save, List<Integer> list, String prefix, int index) {
-        save.addInt(FriendshipMod.modId + "Personalities" + index + prefix + "Size", list.size());
-        for (int i = 0; i < list.size(); i++) {
-            save.addInt(FriendshipMod.modId + "Personalities" + index + prefix + "Value" + i, list.get(i));
-        }
-    }
-
-    private List<Integer> getListFromSave(LoadData save, String prefix, int index) {
-        int size = save.getInt(FriendshipMod.modId + "Personalities" + index + prefix + "Size");
-        LinkedList<Integer> list = new LinkedList<>();
-        for (int i = 0; i < size; i++) {
-            list.add(save.getInt(FriendshipMod.modId + "Personalities" + index + prefix + "Value" + i));
-        }
-        return list;
-    }
-
-    private void addPersonalityToSave(SaveData save, Personality personality, int index) {
-        addListToSave(save, personality.likes, "Likes", index);
-        addListToSave(save, personality.dislikes, "Dislikes", index);
-    }
-
-    private Personality loadPersonalityFromSave(LoadData save, int index) {
-        Personality personality = new Personality();
-        personality.likes = getListFromSave(save, "Likes", index);
-        personality.dislikes = getListFromSave(save, "Dislikes", index);
-        return personality;
-    }
-
     @Override
     public void addSaveData(SaveData save) {
         super.addSaveData(save);
@@ -83,7 +52,8 @@ public class Personalities extends WorldData {
         int i = 0;
         for (Integer mobId : personalities.keySet()) {
             save.addInt(FriendshipMod.modId + "Personality" + i + "Mob", mobId);
-            addPersonalityToSave(save, personalities.get(mobId), i);
+            save.addStringArray(FriendshipMod.modId + "Personality" + i + "Likes", personalities.get(mobId).likes.toArray(new String[0]));
+            save.addStringArray(FriendshipMod.modId + "Personality" + i + "Dislikes", personalities.get(mobId).dislikes.toArray(new String[0]));
             i++;
         }
         System.out.println(FriendshipMod.modId + ": Saved " + personalities.size() + " personalities");
@@ -95,7 +65,9 @@ public class Personalities extends WorldData {
         int size = save.getInt(FriendshipMod.modId + "PersonalitiesSize", 0);
         for (int i = 0; i < size; i++) {
             int mobId = save.getInt(FriendshipMod.modId + "Personality" + i + "Mob");
-            Personality personality = loadPersonalityFromSave(save, i);
+            Personality personality = new Personality();
+            personality.likes = Arrays.asList(save.getStringArray(FriendshipMod.modId + "Personality" + i + "Likes"));
+            personality.dislikes = Arrays.asList(save.getStringArray(FriendshipMod.modId + "Personality" + i + "Dislikes"));
             personalities.put(mobId, personality);
         }
         System.out.println(FriendshipMod.modId + ": Loaded " + personalities.size() + " personalities");
@@ -103,7 +75,7 @@ public class Personalities extends WorldData {
     //endregion
 
     private void generatePersonalityFor(Mob mob) {
-        Personality newPersonality = Personality.generatePersonality();
+        Personality newPersonality = Personality.generatePersonality(mob.getLevel());
         personalities.put(mob.getUniqueID(), newPersonality);
         mob.getServer().network.sendToClientsWithEntity(new PersonalityPacket(mob.getUniqueID(), newPersonality), mob);
         System.out.println("Generated personality for " + mob.getDisplayName());

@@ -38,8 +38,9 @@ public class FriendshipInteractionPatch {
                 float ticketChance = ticketWeight;
                 if (decidedTicket.isPresent()) {
                     if (decidedTicket.get().kind == Ticket.Kind.Human) {
-                        Relationship relationshipWithTicket = relationships.getRelationship(mob.getUniqueID(), decidedTicket.get().ticketId);
-                        Relationship otherRelationshipWithTicket = relationships.getRelationship(other.getUniqueID(), decidedTicket.get().ticketId);
+                        int talkedAboutMobId = Integer.parseInt(decidedTicket.get().ticketId);
+                        Relationship relationshipWithTicket = relationships.getRelationship(mob.getUniqueID(), talkedAboutMobId);
+                        Relationship otherRelationshipWithTicket = relationships.getRelationship(other.getUniqueID(), talkedAboutMobId);
                         float distance;
                         if (relationshipWithTicket.score > otherRelationshipWithTicket.score) {
                             distance = relationshipWithTicket.score - otherRelationshipWithTicket.score;
@@ -50,7 +51,7 @@ public class FriendshipInteractionPatch {
                         ticketChance = GameMath.lerp(ticketPercent, 0, ticketWeight);
                     }
 
-                    if (decidedTicket.get().kind == Ticket.Kind.Item) {
+                    if (decidedTicket.get().kind == Ticket.Kind.Item || decidedTicket.get().kind == Ticket.Kind.Animal) {
                         Personality personality = personalities.getPersonalityFor(mob);
                         Personality otherPersonality = personalities.getPersonalityFor(other);
                         if (

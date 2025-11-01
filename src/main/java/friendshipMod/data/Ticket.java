@@ -7,10 +7,10 @@ public class Ticket {
         Item
     }
 
-    public int ticketId;
+    public String ticketId;
     public Kind kind;
 
-    public Ticket(int ticketId, Kind kind) {
+    public Ticket(String ticketId, Kind kind) {
         this.ticketId = ticketId;
         this.kind = kind;
     }

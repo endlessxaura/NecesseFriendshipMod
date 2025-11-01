@@ -12,13 +12,11 @@ import java.util.Optional;
 public class TicketManager extends WorldData {
     private static TicketManager instance;
     public static final String dataKey = FriendshipMod.modId + "TicketManager";
-    private Hashtable<Integer, Mob> decidedMobs;
-    private Hashtable<Integer, Item> decidedItems;
+    private Hashtable<Integer, Ticket> decidedTickets;
 
     // region Constructors
     public TicketManager() {
-        decidedMobs = new Hashtable<>(10);
-        decidedItems = new Hashtable<>(10);
+        decidedTickets = new Hashtable<>(10);
     }
 
     public static TicketManager getTicketManager(WorldEntity worldEntity) {
@@ -39,25 +37,16 @@ public class TicketManager extends WorldData {
         return instance;
     }
     // endregion
-    
-    public void setDecidedTicket(int mobId, Mob decidedMob) {
-        decidedMobs.put(mobId, decidedMob);
-        decidedItems.remove(mobId);
-    }
 
-    public void setDecidedTicket(int mobId, Item decidedItem) {
-        decidedMobs.remove(mobId);
-        decidedItems.put(mobId, decidedItem);
+    public void setDecidedTicket(int mobId, String aboutId, Ticket.Kind kind) {
+        decidedTickets.put(mobId, new Ticket(aboutId, kind));
     }
 
     public Optional<Ticket> popDecidedTicket(int mobId) {
         Ticket decidedTicket = null;
-        if (decidedMobs.containsKey(mobId)) {
-            decidedTicket = new Ticket(decidedMobs.get(mobId).getUniqueID(), Ticket.Kind.Human);
-            decidedMobs.remove(mobId);
-        } else if (decidedItems.containsKey(mobId)) {
-            decidedTicket = new Ticket(decidedItems.get(mobId).getID(), Ticket.Kind.Item);
-            decidedItems.remove(mobId);
+        if (decidedTickets.containsKey(mobId)) {
+            decidedTicket = decidedTickets.get(mobId);
+            decidedTickets.remove(mobId);
         }
         return Optional.ofNullable(decidedTicket);
     }

@@ -27,9 +27,7 @@ public class SettlementRoomHappinessPatch {
             for (Mob roommate : roommates) {
                 Relationship relationship = relationships.getRelationship(humanMob, roommate);
                 HappinessModifier modifier = relationship.getRoommateHappinessModifier(roommate);
-                if (modifier.happiness != 0) {
-                    happinessModifiers.add(modifier);
-                }
+                happinessModifiers.add(modifier);
             }
         }
     }

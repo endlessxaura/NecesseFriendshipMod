@@ -25,7 +25,7 @@ public class Roommates {
             for(Point p : subRegion.getLevelTiles()) {
                 if (room.data.networkData.isTileWithinBounds(p.x, p.y)) {
                     SettlementBed bed = room.data.addOrValidateBed(p.x, p.y, true);
-                    if (bed != null) {
+                    if (bed != null && bed.getSettler() != null) {
                         Mob bedMob = bed.getSettler().getMob().getMob();
                         if (bedMob.getUniqueID() != person.getUniqueID()) {
                             roommates.add(bed.getSettler().getMob().getMob());

@@ -36,18 +36,18 @@ public class PersonalityPacket extends Packet {
         addListToPacket(writer, personality.dislikes);
     }
 
-    private void addListToPacket(PacketWriter writer, List<Integer> list) {
+    private void addListToPacket(PacketWriter writer, List<String> list) {
         writer.putNextInt(list.size());
-        for (Integer integer : list) {
-            writer.putNextInt(integer);
+        for (String text : list) {
+            writer.putNextString(text);
         }
     }
 
-    public List<Integer> getListFromPacket(PacketReader reader) {
-        List<Integer> list = new LinkedList<>();
+    public List<String> getListFromPacket(PacketReader reader) {
+        List<String> list = new LinkedList<>();
         int size = reader.getNextInt();
         for (int i = 0; i < size; i++) {
-            list.add(reader.getNextInt());
+            list.add(reader.getNextString());
         }
         return list;
     }

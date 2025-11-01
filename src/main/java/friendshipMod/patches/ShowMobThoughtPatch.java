@@ -1,5 +1,6 @@
 package friendshipMod.patches;
 
+import friendshipMod.data.Ticket;
 import friendshipMod.data.TicketManager;
 import necesse.engine.modLoader.annotations.ModMethodPatch;
 import necesse.entity.mobs.Mob;
@@ -18,7 +19,7 @@ public class ShowMobThoughtPatch {
     ) {
         TicketManager
                 .getTicketManager(ability.getMob().getWorldEntity())
-                .setDecidedTicket(ability.getMob().getUniqueID(), target);
+                .setDecidedTicket(ability.getMob().getUniqueID(), target.getStringID(), Ticket.Kind.Animal);
     }
 
 }
