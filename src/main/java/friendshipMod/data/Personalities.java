@@ -106,6 +106,7 @@ public class Personalities extends WorldData {
         Personality newPersonality = Personality.generatePersonality();
         personalities.put(mob.getUniqueID(), newPersonality);
         mob.getServer().network.sendToClientsWithEntity(new PersonalityPacket(mob.getUniqueID(), newPersonality), mob);
+        System.out.println("Generated personality for " + mob.getDisplayName());
     }
 
     public Dictionary<Integer, Personality> getAll() {
@@ -116,6 +117,7 @@ public class Personalities extends WorldData {
         if (!personalities.containsKey(mob.getUniqueID())) {
             generatePersonalityFor(mob);
         }
+        System.out.println("Got personality for " + mob.getDisplayName());
         return personalities.get(mob.getUniqueID());
     }
 
