@@ -32,22 +32,27 @@ public class Relationships extends WorldData {
         associationScores = new Hashtable<Association, Integer>(30);
     }
 
-    public static Relationships getRelationships(WorldEntity worldEntity) {
-        if (worldEntity.isServer()) {
-            WorldData worldData = worldEntity.getWorldData(dataKey);
-            if (worldData != null) {
-                return (Relationships) worldData;
+    /**
+     * Retrieves the same instance of relationships
+     * @param worldEntity The world to fetch relationships for
+     * @return the singleton instance for relationships
+     */
+    public static Relationships getInstance(WorldEntity worldEntity) {
+        if (instance == null) {
+            if (worldEntity.isServer()) {
+                WorldData worldData = worldEntity.getWorldData(dataKey);
+                if (worldData != null) {
+                    instance = (Relationships) worldData;
+                } else {
+                    Relationships newRelationships = new Relationships();
+                    worldEntity.addWorldData(dataKey, newRelationships);
+                    instance = newRelationships;
+                }
             } else {
-                Relationships newRelationships = new Relationships();
-                worldEntity.addWorldData(dataKey, newRelationships);
-                return newRelationships;
-            }
-        } else {
-            if (instance == null) {
                 instance = new Relationships();
             }
-            return instance;
         }
+        return instance;
     }
     // endregion
 

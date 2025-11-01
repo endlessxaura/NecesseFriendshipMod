@@ -3,7 +3,6 @@ package friendshipMod.patches;
 import friendshipMod.data.Relationship;
 import friendshipMod.data.Relationships;
 import necesse.engine.modLoader.annotations.ModMethodPatch;
-import necesse.entity.manager.EntityManager;
 import necesse.entity.mobs.Mob;
 import necesse.entity.mobs.ai.behaviourTree.leaves.HumanInteractWithSettlerAINode;
 import necesse.entity.mobs.friendly.human.HumanMob;
@@ -26,7 +25,7 @@ public class RandomSettlerPatch {
             @Advice.Argument(1) int maxTileRange,
             @Advice.Argument(2) int limit
     ) {
-        Relationships relationships = Relationships.getRelationships(mob.getWorldEntity());
+        Relationships relationships = Relationships.getInstance(mob.getWorldEntity());
         List<Relationship> mobRelationships = relationships.getRelationshipsFor(mob);
         return mobRelationships
                 .stream()

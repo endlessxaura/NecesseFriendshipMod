@@ -18,7 +18,7 @@ public class RelationshipsOnMobSpawnMethodPatch {
         @Advice.Argument(0) Mob mob
     ) {
         if (entityManager.level.isServer() && mob.shouldSendSpawnPacket() && mob instanceof HumanMob) {
-            Relationships relationships = Relationships.getRelationships(entityManager.level.getWorldEntity());
+            Relationships relationships = Relationships.getInstance(entityManager.level.getWorldEntity());
             RelationshipsPacket packet = new RelationshipsPacket(relationships.getRelationshipsFor(mob));
             entityManager.level.getServer().network.sendToClientsWithEntity(packet, mob);
             System.out.println(FriendshipMod.modId + ": Server sent relationships for " + mob.getDisplayName());

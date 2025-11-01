@@ -1,6 +1,5 @@
 package friendshipMod.patches;
 
-import friendshipMod.FriendshipMod;
 import friendshipMod.data.Relationship;
 import friendshipMod.data.Relationships;
 import friendshipMod.utilities.Roommates;
@@ -24,7 +23,7 @@ public class SettlementRoomHappinessPatch {
     ) {
         List<Mob> roommates = Roommates.get(humanMob);
         if (!roommates.isEmpty()) {
-            Relationships relationships = Relationships.getRelationships(humanMob.getWorldEntity());
+            Relationships relationships = Relationships.getInstance(humanMob.getWorldEntity());
             for (Mob roommate : roommates) {
                 Relationship relationship = relationships.getRelationship(humanMob, roommate);
                 HappinessModifier modifier = relationship.getRoommateHappinessModifier(roommate);

@@ -12,7 +12,6 @@ import necesse.engine.network.client.Client;
 import necesse.engine.network.server.Server;
 import necesse.engine.network.server.ServerClient;
 import necesse.engine.world.WorldEntity;
-import necesse.entity.mobs.Mob;
 
 public class RelationshipPacket extends Packet {
     public Relationship relationship;
@@ -37,7 +36,7 @@ public class RelationshipPacket extends Packet {
     }
 
     public void applyPacket(WorldEntity worldEntity) {
-        Relationships relationships = Relationships.getRelationships(worldEntity);
+        Relationships relationships = Relationships.getInstance(worldEntity);
         relationships.setRelationship(relationship);
         System.out.println(FriendshipMod.modId + ": RelationshipPacket applied at " + (worldEntity.isServer() ? "server" : "client"));
     }

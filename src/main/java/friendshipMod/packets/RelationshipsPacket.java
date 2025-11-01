@@ -46,7 +46,7 @@ public class RelationshipsPacket extends Packet {
     }
 
     public void applyPacket(WorldEntity worldEntity) {
-        Relationships relationships = Relationships.getRelationships(worldEntity);
+        Relationships relationships = Relationships.getInstance(worldEntity);
         for (Association association : associationScores.keySet()) {
             relationships.setRelationship(association, associationScores.get(association));
         }

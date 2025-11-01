@@ -1,10 +1,7 @@
 package friendshipMod.patches;
 
 import friendshipMod.FriendshipMod;
-import friendshipMod.data.Relationship;
-import friendshipMod.data.Relationships;
-import friendshipMod.data.Ticket;
-import friendshipMod.data.TicketManager;
+import friendshipMod.data.*;
 import friendshipMod.packets.RelationshipPacket;
 import necesse.engine.modLoader.annotations.ModMethodPatch;
 import necesse.engine.util.GameMath;
@@ -13,10 +10,8 @@ import necesse.entity.mobs.ai.behaviourTree.Blackboard;
 import necesse.entity.mobs.ai.behaviourTree.leaves.HumanInteractWithSettlerAINode;
 import necesse.entity.mobs.friendly.human.HumanMob;
 import net.bytebuddy.asm.Advice;
-import net.bytebuddy.utility.RandomString;
 
 import java.util.Optional;
-import java.util.Random;
 
 @ModMethodPatch(target = HumanInteractWithSettlerAINode.class, name = "tickNode", arguments = {HumanMob.class, Blackboard.class})
 public class FriendshipInteractionPatch {
@@ -33,7 +28,7 @@ public class FriendshipInteractionPatch {
         if (mob.isServer()) {
 
             if (stageTicker == 20) {
-                Relationships relationships = Relationships.getRelationships(mob.getWorldEntity());
+                Relationships relationships = Relationships.getInstance(mob.getWorldEntity());
                 Relationship relationship = relationships.getRelationship(mob, other);
                 float relationshipPercent = (relationship.score + Math.abs(Relationships.min)) / (float)Relationships.getRange();
                 float relationshipChance = GameMath.lerp(relationshipPercent, 0, relationshipWeight);
@@ -53,13 +48,32 @@ public class FriendshipInteractionPatch {
                         float ticketPercent = (Relationships.getRange() - distance) / Relationships.getRange();
                         ticketChance = GameMath.lerp(ticketPercent, 0, ticketWeight);
                     }
+
+                    if (decidedTicket.get().kind == Ticket.Kind.Item) {
+                        Personalities personalities = Personalities.getInstance(mob.getWorldEntity());
+                        Personality personality = personalities.getPersonalityFor(mob);
+                        Personality otherPersonality = personalities.getPersonalityFor(other);
+                        if (
+                                (personality.likes(decidedTicket.get().ticketId) && otherPersonality.likes(decidedTicket.get().ticketId))
+                                || (personality.dislikes(decidedTicket.get().ticketId) && otherPersonality.dislikes(decidedTicket.get().ticketId))
+                        ) {
+                            ticketChance = ticketWeight;
+                        } else if (
+                                (personality.likes(decidedTicket.get().ticketId) && otherPersonality.dislikes(decidedTicket.get().ticketId))
+                                || (personality.dislikes(decidedTicket.get().ticketId) && otherPersonality.likes(decidedTicket.get().ticketId))
+                        ) {
+                            ticketChance = 0;
+                        } else {
+                            ticketChance = ticketWeight / 2f;
+                        }
+                    }
                 }
 
                 interactionPositive = GameRandom.globalRandom.getChance(relationshipChance + ticketChance);
             }
 
             if (stageTicker == 80) {
-                Relationships relationships = Relationships.getRelationships(mob.getWorldEntity());
+                Relationships relationships = Relationships.getInstance(mob.getWorldEntity());
                 Relationship relationship = relationships.getRelationship(mob, other);
                 if (interactionPositive) {
                     relationship.score += 1;
