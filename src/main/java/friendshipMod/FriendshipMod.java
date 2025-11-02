@@ -11,11 +11,26 @@ import necesse.engine.registries.PacketRegistry;
 import necesse.engine.registries.WorldDataRegistry;
 import necesse.engine.world.WorldEntity;
 import necesse.engine.world.worldData.WorldData;
+import net.bytebuddy.agent.ByteBuddyAgent;
+import net.bytebuddy.agent.builder.AgentBuilder;
+import net.bytebuddy.dynamic.ClassFileLocator;
+import net.bytebuddy.dynamic.loading.ClassInjector;
+import net.bytebuddy.matcher.ElementMatchers;
+
+import java.lang.instrument.Instrumentation;
+import java.util.Collections;
+
+import static net.bytebuddy.matcher.ElementMatchers.none;
 
 @ModEntry
 public class FriendshipMod
 {
     public static String modId = "FriendshipMod";
+
+    static {
+
+
+    }
 
     public void init() {
         WorldDataRegistry.registerWorldData(Relationships.dataKey, Relationships.class);
