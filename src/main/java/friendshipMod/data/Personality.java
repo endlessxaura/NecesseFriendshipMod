@@ -122,7 +122,7 @@ public class Personality {
     private static List<String> generateSetFromItems(List<Item> items, int count) {
         LinkedList<String> liked = new LinkedList<>();
         for (int i = 0; i < count; i++) {
-            Item item = items.get(GameRandom.globalRandom.getIntBetween(0, items.size()));
+            Item item = items.get(GameRandom.globalRandom.getIntBetween(0, items.size() - 1));
             liked.add(item.getStringID());
             List<Recipe> recipes = Recipes.getRecipesFromIngredient(item.getID());
             for (Recipe recipe : recipes) {
@@ -135,7 +135,7 @@ public class Personality {
     private static List<String> generateSetFromMobs(List<Mob> mobs, int count) {
         LinkedList<String> liked = new LinkedList<>();
         for (int i = 0; i < count; i++) {
-            Mob mob = mobs.get(GameRandom.globalRandom.getIntBetween(0, mobs.size()));
+            Mob mob = mobs.get(GameRandom.globalRandom.getIntBetween(0, mobs.size() - 1));
             liked.add(mob.getStringID());
         }
         return liked;

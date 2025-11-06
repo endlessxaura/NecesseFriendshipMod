@@ -8,6 +8,7 @@ import necesse.engine.world.WorldEntity;
 import necesse.engine.world.worldData.WorldData;
 import necesse.entity.mobs.Mob;
 
+import javax.naming.OperationNotSupportedException;
 import java.util.*;
 
 public class Personalities extends WorldData {
@@ -74,23 +75,33 @@ public class Personalities extends WorldData {
     }
     //endregion
 
-    private void generatePersonalityFor(Mob mob) {
+    public void generatePersonalityFor(Mob mob) {
+        if (mob.isClient()) {
+            throw new RuntimeException();
+        }
         Personality newPersonality = Personality.generatePersonality(mob.getLevel());
         personalities.put(mob.getUniqueID(), newPersonality);
         mob.getServer().network.sendToClientsWithEntity(new PersonalityPacket(mob.getUniqueID(), newPersonality), mob);
-        System.out.println("Generated personality for " + mob.getDisplayName());
     }
 
     public Dictionary<Integer, Personality> getAll() {
         return personalities;
     }
 
+    public boolean hasPersonalityFor(int mobId) {
+        return personalities.containsKey(mobId);
+    }
+
+    public boolean hasPersonalityFor(Mob mob) {
+        return hasPersonalityFor(mob.getUniqueID());
+    }
+
+    public Personality getPersonalityFor(int mobId) {
+        return personalities.get(mobId);
+    }
+
     public Personality getPersonalityFor(Mob mob) {
-        if (!personalities.containsKey(mob.getUniqueID())) {
-            generatePersonalityFor(mob);
-        }
-        System.out.println("Got personality for " + mob.getDisplayName());
-        return personalities.get(mob.getUniqueID());
+        return getPersonalityFor(mob.getUniqueID());
     }
 
     public void setPersonality(Mob mob, Personality personality) {

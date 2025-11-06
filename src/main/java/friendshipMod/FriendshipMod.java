@@ -3,9 +3,7 @@ package friendshipMod;
 import friendshipMod.data.Personalities;
 import friendshipMod.data.Relationships;
 import friendshipMod.data.TicketManager;
-import friendshipMod.packets.PersonalityPacket;
-import friendshipMod.packets.RelationshipPacket;
-import friendshipMod.packets.RelationshipsPacket;
+import friendshipMod.packets.*;
 import necesse.engine.modLoader.annotations.ModEntry;
 import necesse.engine.registries.PacketRegistry;
 import necesse.engine.registries.WorldDataRegistry;
@@ -38,7 +36,9 @@ public class FriendshipMod
         WorldDataRegistry.registerWorldData(Personalities.dataKey, Personalities.class);
         PacketRegistry.registerPacket(RelationshipPacket.class);
         PacketRegistry.registerPacket(RelationshipsPacket.class);
+        PacketRegistry.registerPacket(RelationshipRequestPacket.class);
         PacketRegistry.registerPacket(PersonalityPacket.class);
+        PacketRegistry.registerPacket(PersonalityRequestPacket.class);
     }
 
     public void initResources() {
