@@ -7,6 +7,7 @@ import necesse.engine.registries.MobRegistry;
 import necesse.engine.util.GameRandom;
 import necesse.entity.mobs.Mob;
 import necesse.entity.mobs.friendly.HusbandryMob;
+import necesse.entity.mobs.friendly.human.HappinessModifier;
 import necesse.inventory.InventoryItem;
 import necesse.inventory.item.Item;
 import necesse.inventory.recipe.Recipe;
@@ -24,6 +25,8 @@ public class Personality {
     public static final int foodLikes = 5;
     public static final int furnitureLikes = 2;
     public static final int animalLikes = 1;
+    public static final String likeMessageFormat = "I think my %s is beautiful!";
+    public static final String dislikeMessageFormat = "I think my %s is ugly...";
 
     // region Constructors
     public Personality() {
@@ -164,6 +167,22 @@ public class Personality {
 
     public boolean dislikes(Item item) {
         return dislikes(item.getStringID());
+    }
+
+    public HappinessModifier getModifierFor(Item item) {
+        String message;
+        int value;
+        if (likes(item)) {
+            message = String.format(likeMessageFormat, item.getDisplayName(new InventoryItem(item)).toLowerCase());
+            value = -5;
+        } else if (dislikes(item)) {
+            message = String.format(dislikeMessageFormat, item.getDisplayName(new InventoryItem(item)).toLowerCase());
+            value = +5;
+        } else {
+            return null;
+        }
+        GameMessage gameMessage = new GameMessageBuilder().append(message);
+        return new HappinessModifier(value, gameMessage);
     }
 
     public GameMessage getRandomMessage(Level level) {

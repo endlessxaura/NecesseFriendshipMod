@@ -1,14 +1,20 @@
 package friendshipMod.patches;
 
+import friendshipMod.data.Personalities;
+import friendshipMod.data.Personality;
 import friendshipMod.data.Relationship;
 import friendshipMod.data.Relationships;
+import friendshipMod.utilities.Furniture;
 import friendshipMod.utilities.Roommates;
 import necesse.engine.modLoader.annotations.ModMethodPatch;
 import necesse.entity.mobs.Mob;
 import necesse.entity.mobs.friendly.human.HappinessModifier;
 import necesse.entity.mobs.friendly.human.HumanMob;
+import necesse.level.gameObject.GameObject;
+import necesse.level.gameObject.furniture.RoomFurniture;
 import net.bytebuddy.asm.Advice;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -28,6 +34,22 @@ public class SettlementRoomHappinessPatch {
                 Relationship relationship = relationships.getRelationship(humanMob, roommate);
                 HappinessModifier modifier = relationship.getRoommateHappinessModifier(roommate);
                 happinessModifiers.add(modifier);
+            }
+        }
+
+        List<String> checkedIds = new LinkedList<>();
+        List<GameObject> furniture = Furniture.get(humanMob);
+        if (!furniture.isEmpty()) {
+            Personalities personalities = Personalities.getInstance(humanMob.getWorldEntity());
+            Personality personality = personalities.getPersonalityFor(humanMob);
+            if (personality != null) {
+                for (GameObject furnitureItem : furniture) {
+                    if (!checkedIds.contains(furnitureItem.getStringID()) && personality.likes(furnitureItem.getStringID())) {
+                        HappinessModifier modifier = personality.getModifierFor(furnitureItem.getObjectItem());
+                        happinessModifiers.add(modifier);
+                    }
+                    checkedIds.add(furnitureItem.getStringID());
+                }
             }
         }
     }
