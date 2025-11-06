@@ -50,7 +50,6 @@ public class ShopContainerFormUpdateDialoguePatch {
     public static void onExit(
         @Advice.This ShopContainerForm<ShopContainer> shopContainerForm
     ) {
-        // TODO: say something relevant
         Personalities personalities = Personalities.getInstance(shopContainerForm.getClient().worldEntity);
         Personality personality = personalities.getPersonalityFor(shopContainerForm.getContainer().getMob());
         DialogueForm conversationForm = new DialogueForm(
@@ -58,7 +57,7 @@ public class ShopContainerFormUpdateDialoguePatch {
                 shopContainerForm.width,
                 shopContainerForm.height,
                 shopContainerForm.header,
-                new GameMessageBuilder().append("Hi!")
+                personality.getRandomMessage(shopContainerForm.getClient().getLevel())
         );
         conversationForm = shopContainerForm.addComponent(conversationForm);
         ContainerComponent.setPosFocus(conversationForm);

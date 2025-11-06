@@ -72,7 +72,7 @@ public class Personality {
                                 .stream()
                                 .map(x -> MobRegistry.getMob(x.getStringID(), level))
                                 .filter(x -> !dislikes.contains(x.getStringID()))
-                                .filter(x -> x.isCritter)
+                                .filter(x -> x instanceof HusbandryMob)
                                 .collect(Collectors.toList()),
                         animalLikes
                 )
@@ -188,22 +188,32 @@ public class Personality {
     public GameMessage getRandomMessage(Level level) {
         int randomThing = GameRandom.globalRandom.getIntBetween(0, likes.size() + dislikes.size());
         String thingId;
-        if (randomThing < likes.size()) {
+        boolean liked = randomThing < likes.size();
+        if (liked) {
             thingId = likes.get(randomThing);
         } else {
             thingId = dislikes.get(randomThing);
         }
         Item possibleItem = ItemRegistry.getItem(thingId);
-        Mob possibleMob = MobRegistry.getMob(thingId, level);
         if (possibleItem != null) {
             InventoryItem inventoryItem = new InventoryItem(possibleItem);
             if (possibleItem.isFoodItem()) {
-                return new GameMessageBuilder().append("I could really go for a " + inventoryItem.getItemDisplayName() + " right now...");
+                return new GameMessageBuilder().append("I could really go for a " + inventoryItem.getItemDisplayName().toLowerCase() + " right now...");
+            } else if (liked) {
+                return new GameMessageBuilder().append("I think a " + inventoryItem.getItemDisplayName().toLowerCase() + " would look great in my room.");
             } else {
-                return new GameMessageBuilder().append("I think a " + inventoryItem.getItemDisplayName() + " would look great in my room.");
+                return new GameMessageBuilder().append("I think a " + inventoryItem.getItemDisplayName().toLowerCase() + " just looks so ugly.");
             }
         } else {
-            return new GameMessageBuilder().append("Have you seen " + possibleMob.getDisplayName() + "? They are so cute!");
+            Mob possibleMob = MobRegistry.getMob(thingId, level);
+            if (possibleMob != null) {
+                if (liked) {
+                    return new GameMessageBuilder().append("Have you seen " + possibleMob.getDisplayName().toLowerCase() + "? They are so cute!");
+                } else {
+                    return new GameMessageBuilder().append("I just think " + possibleMob.getDisplayName().toLowerCase() + " are annoying.");
+                }
+            }
         }
+        return new GameMessageBuilder().append("Hmmm");
     }
 }
