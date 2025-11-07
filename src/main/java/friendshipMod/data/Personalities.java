@@ -39,6 +39,7 @@ public class Personalities extends WorldData {
                 }
             } else {
                 instance = new Personalities();
+                instance.setWorldEntity(worldEntity);
             }
         }
         return instance;

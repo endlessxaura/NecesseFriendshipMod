@@ -16,8 +16,8 @@ import java.util.List;
 public class MobClientTickPatch {
     public static final List<Integer> requestedPersonalities = new LinkedList<>();
     public static final List<Integer> requestedRelationships = new LinkedList<>();
-    public static long personalityRequestTime = 0;
-    public static long relationshipRequestTime = 0;
+    public static long personalityRequestTime = 0; // These just prevent overloading the server
+    public static long relationshipRequestTime = 0; // These just prevent overloading the server
 
     @Advice.OnMethodExit
     public static void onExit(

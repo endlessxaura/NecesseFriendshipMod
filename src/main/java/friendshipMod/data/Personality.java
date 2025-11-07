@@ -85,9 +85,9 @@ public class Personality {
                 ItemRegistry
                         .getItems()
                         .stream()
-                        .filter(Item::isFoodItem)
+                        .filter(Item::isFoodItem) // it's food
                         .filter(x -> !likes.contains(x.getStringID()))
-                        .filter(x -> Recipes.getRecipesFromResult(x.getID()).isEmpty())
+                        .filter(x -> Recipes.getRecipesFromResult(x.getID()).isEmpty()) // it's basic, e.g. a tomato and not tomato sauce
                         .collect(Collectors.toList()),
                 foodLikes
         );
@@ -96,9 +96,9 @@ public class Personality {
                         ItemRegistry
                                 .getItems()
                                 .stream()
-                                .filter(Item::isPlaceable)
+                                .filter(Item::isPlaceable) // it's placeable
                                 .filter(x -> !likes.contains(x.getStringID()))
-                                .filter(x -> !Recipes.getRecipesFromResult(x.getID()).isEmpty())
+                                .filter(x -> !Recipes.getRecipesFromResult(x.getID()).isEmpty()) // it's craftable
                                 .collect(Collectors.toList()),
                         furnitureLikes
                 )
@@ -161,6 +161,10 @@ public class Personality {
         return likes(item.getStringID());
     }
 
+    public boolean likes(Mob mob) {
+        return likes(mob.getStringID());
+    }
+
     public boolean dislikes(String itemId) {
         return dislikes.contains(itemId);
     }
@@ -185,33 +189,52 @@ public class Personality {
         return new HappinessModifier(value, gameMessage);
     }
 
-    public GameMessage getRandomMessage(Level level) {
-        int randomThing = GameRandom.globalRandom.getIntBetween(0, likes.size() + dislikes.size());
+    private String getRandomTopic() {
+        int randomThing = GameRandom.globalRandom.getIntBetween(0, likes.size() + dislikes.size() - 1);
         String thingId;
         boolean liked = randomThing < likes.size();
         if (liked) {
             thingId = likes.get(randomThing);
         } else {
-            thingId = dislikes.get(randomThing);
+            thingId = dislikes.get(randomThing - likes.size());
         }
-        Item possibleItem = ItemRegistry.getItem(thingId);
-        if (possibleItem != null) {
-            InventoryItem inventoryItem = new InventoryItem(possibleItem);
-            if (possibleItem.isFoodItem()) {
+        return thingId;
+    }
+
+    private GameMessage getMessageFor(Item item) {
+        InventoryItem inventoryItem = new InventoryItem(item);
+        if (item.isFoodItem()) {
+            if (this.likes(item)) {
                 return new GameMessageBuilder().append("I could really go for a " + inventoryItem.getItemDisplayName().toLowerCase() + " right now...");
-            } else if (liked) {
+            } else {
+                return new GameMessageBuilder().append("I can't stand the taste of " + inventoryItem.getItemDisplayName().toLowerCase() + ". Bleh!");
+            }
+        } else {
+            if (this.likes(item)) {
                 return new GameMessageBuilder().append("I think a " + inventoryItem.getItemDisplayName().toLowerCase() + " would look great in my room.");
             } else {
-                return new GameMessageBuilder().append("I think a " + inventoryItem.getItemDisplayName().toLowerCase() + " just looks so ugly.");
+                return new GameMessageBuilder().append("I think a " + inventoryItem.getItemDisplayName().toLowerCase() + " just looks so ugly. Why would you want one in your room?");
             }
+        }
+    }
+
+    private GameMessage getMessageFor(Mob mob) {
+        if (this.likes(mob)) {
+            return new GameMessageBuilder().append("Have you seen " + mob.getDisplayName().toLowerCase() + "? They are so cute!");
+        } else {
+            return new GameMessageBuilder().append("I just think " + mob.getDisplayName().toLowerCase() + "s are annoying.");
+        }
+    }
+
+    public GameMessage getRandomMessage(Level level) {
+        String thingId = getRandomTopic();
+        Item possibleItem = ItemRegistry.getItem(thingId);
+        if (possibleItem != null) {
+            return getMessageFor(possibleItem);
         } else {
             Mob possibleMob = MobRegistry.getMob(thingId, level);
             if (possibleMob != null) {
-                if (liked) {
-                    return new GameMessageBuilder().append("Have you seen " + possibleMob.getDisplayName().toLowerCase() + "? They are so cute!");
-                } else {
-                    return new GameMessageBuilder().append("I just think " + possibleMob.getDisplayName().toLowerCase() + " are annoying.");
-                }
+                return getMessageFor(possibleMob);
             }
         }
         return new GameMessageBuilder().append("Hmmm");

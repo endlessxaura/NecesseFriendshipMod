@@ -45,4 +45,9 @@ public class RelationshipPacket extends Packet {
     public void processClient(NetworkPacket packet, Client client) {
         applyPacket(client.worldEntity);
     }
+
+    @Override
+    public void processServer(NetworkPacket packet, Server server, ServerClient client) {
+        applyPacket(server.world.worldEntity);
+    }
 }
