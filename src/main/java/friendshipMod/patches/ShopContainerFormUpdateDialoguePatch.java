@@ -16,6 +16,7 @@ import necesse.gfx.forms.ContainerComponent;
 import necesse.gfx.forms.presets.containerComponent.mob.DialogueForm;
 import necesse.gfx.forms.presets.containerComponent.mob.ShopContainerForm;
 import necesse.inventory.InventoryItem;
+import necesse.inventory.PlayerInventoryManager;
 import necesse.inventory.container.mob.ShopContainer;
 import necesse.inventory.container.mob.ShopContainerPartyUpdateEvent;
 import net.bytebuddy.asm.Advice;
@@ -77,10 +78,12 @@ public class ShopContainerFormUpdateDialoguePatch {
 
     public static class ImpactfulDialogueRunner extends DialogRunner {
         int value;
+        String type;
 
-        public ImpactfulDialogueRunner(ShopContainerForm<ShopContainer> container, DialogueForm form, int value) {
+        public ImpactfulDialogueRunner(ShopContainerForm<ShopContainer> container, DialogueForm form, int value, String type) {
             super(container, form);
             this.value = value;
+            this.type = type;
         }
 
         @Override
@@ -90,11 +93,11 @@ public class ShopContainerFormUpdateDialoguePatch {
             Mob mob = container.getContainer().getMob();
             if (player != null && mob != null) {
                 Relationships relationships = Relationships.getInstance(container.getClient().worldEntity);
-                if (!relationships.recentlyModified(player, mob)) {
+                if (!relationships.recentlyModified(player, mob, type)) {
                     Relationship relationship = relationships.getRelationship(player, mob);
                     relationship.score += value;
-                    relationships.setRelationship(relationship);
-                    RelationshipPacket packet = new RelationshipPacket(relationship);
+                    relationships.setRelationship(relationship, type);
+                    RelationshipPacket packet = new RelationshipPacket(relationship, type);
                     if (player.isServer()) {
                         player.getServerClient().sendPacket(packet);
                     } else {
@@ -108,53 +111,61 @@ public class ShopContainerFormUpdateDialoguePatch {
 
     public static class GiftDialogueRunner extends DialogRunner {
         Personality personality;
+        InventoryItem inventoryItem;
 
         public GiftDialogueRunner(
                 ShopContainerForm<ShopContainer> container,
                 DialogueForm form,
-                Personality personality
+                Personality personality,
+                InventoryItem inventoryItem
         ) {
             super(container, form);
             this.personality = personality;
+            this.inventoryItem = inventoryItem;
+
         }
 
         @Override
         public void run() {
             PlayerMob player = container.getClient().getPlayer();
             Mob mob = container.getContainer().getMob();
-            WorldEntity world = container.getClient().worldEntity;
-            InventoryItem inventoryItem = player.getSelectedItem();
+            int remainingItems = player.getInv().removeItems(inventoryItem.item, 1, true, true, true, true, FriendshipMod.modId + "GiftGiving");
+            Relationships relationships = Relationships.getInstance(container.getClient().worldEntity);
+            Relationship relationship = relationships.getRelationship(player, mob);
 
             GameMessageBuilder message = new GameMessageBuilder();
-            int value = 0;
-            if (inventoryItem != null) {
-                if (personality.likes(inventoryItem.item)) {
-                    message.append("Thanks, I like this a lot!");
-                    value = 5;
-                } else if (personality.dislikes(inventoryItem.item)) {
-                    message.append("Oh. Um. Sure...");
-                    value = 1;
-                } else {
-                    message.append("Thanks.");
-                    value = -5;
-                }
-                player.getInv().removeItems(inventoryItem.item, 1, true, true, true, true, FriendshipMod.modId + "GiftGiving");
+            if (relationships.recentlyModified(relationship.getAssociation(), Relationships.AdjustmentTypes.Gift)) {
+                message.append("I appreciate it, but you've already given me something recently!");
             } else {
-                message.append("But you're not holding anything.");
+                int value = 0;
+                if (inventoryItem != null && remainingItems == 1) {
+                    if (personality.likes(inventoryItem.item)) {
+                        message.append("Thanks, I like this a lot!");
+                        value = 5;
+                    } else if (personality.dislikes(inventoryItem.item)) {
+                        message.append("Oh. Um. Sure...");
+                        value = 1;
+                    } else {
+                        message.append("Thanks.");
+                        value = -5;
+                    }
+                } else {
+                    message.append("But you don't have one.");
+                    value = -1;
+                }
+
+                relationship.score += value;
+                relationships.setRelationship(relationship, Relationships.AdjustmentTypes.Gift);
+                RelationshipPacket packet = new RelationshipPacket(relationship, Relationships.AdjustmentTypes.Gift);
+                System.out.println(FriendshipMod.modId + ": Client update sent for (" + player.getUniqueID() + ", " + mob.getUniqueID() + ")");
+                player.getClient().network.sendPacket(packet);
             }
+
             form.reset(container.header, message);
             form.addDialogueOption(
                     new GameMessageBuilder().append("Goodbye."),
                     new CloseRunner(container)
             );
-
-            Relationships relationships = Relationships.getInstance(container.getClient().worldEntity);
-            Relationship relationship = relationships.getRelationship(player, mob);
-            relationship.score += value;
-            relationships.setRelationship(relationship);
-            RelationshipPacket packet = new RelationshipPacket(relationship);
-            player.getClient().network.sendPacket(packet);
-
             super.run();
         }
     }
@@ -210,14 +221,13 @@ public class ShopContainerFormUpdateDialoguePatch {
             ShopContainerForm<ShopContainer> container,
             Personality personality
     ) {
-        DialogueForm giftForm = new DialogueForm(
+        return new DialogueForm(
                 FriendshipMod.modId + "GiftForm",
                 container.width,
                 container.height,
                 container.header,
                 new GameMessageBuilder().append("")
         );
-        return giftForm;
     }
 
     @Advice.OnMethodExit
@@ -234,7 +244,7 @@ public class ShopContainerFormUpdateDialoguePatch {
         ContainerComponent.setPosFocus(conversationForm);
         shopContainerForm.dialogueForm.addDialogueOption(
                 new GameMessageBuilder().append("Let's talk."),
-                new ImpactfulDialogueRunner(shopContainerForm, conversationForm, 1)
+                new ImpactfulDialogueRunner(shopContainerForm, conversationForm, 1, Relationships.AdjustmentTypes.Talk)
         );
         shopContainerForm.dialogueForm.setHeight(Math.max(shopContainerForm.dialogueForm.getContentHeight() + 5, shopContainerForm.height));
 
@@ -245,7 +255,7 @@ public class ShopContainerFormUpdateDialoguePatch {
         if (inventoryItem != null) {
             shopContainerForm.dialogueForm.addDialogueOption(
                     new GameMessageBuilder().append("This " + inventoryItem.getItemDisplayName() + " is a gift for you!"),
-                    new GiftDialogueRunner(shopContainerForm, giftForm, personality)
+                    new GiftDialogueRunner(shopContainerForm, giftForm, personality, inventoryItem)
             );
         }
     }

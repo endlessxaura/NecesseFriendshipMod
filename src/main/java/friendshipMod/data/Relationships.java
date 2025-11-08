@@ -22,21 +22,30 @@ public class Relationships extends WorldData {
     public static final Integer max = 100;
     public static final Integer min = -100;
 
+    public static class AdjustmentTypes {
+        public static final String Load = "load";
+        public static final String Talk = "talk";
+        public static final String Gift = "gift";
+    }
+
     /**
      * Stores a matrix of unique mob IDs and their friendship scores.
      */
     protected Hashtable<Association, Integer> associationScores;
 
     /**
-     * Stores when a relationship was last modified
+     * Stores when a relationship was last modified by type
      */
-    protected Hashtable<Association, Long> lastModified;
+    protected Hashtable<String, Hashtable<Association, Long>> lastModifiedByType;
 
     // region Constructors
     public Relationships() {
         super();
         associationScores = new Hashtable<>(30);
-        lastModified = new Hashtable<>(30);
+        lastModifiedByType = new Hashtable<>(5);
+        lastModifiedByType.put(AdjustmentTypes.Gift, new Hashtable<>());
+        lastModifiedByType.put(AdjustmentTypes.Talk, new Hashtable<>());
+        lastModifiedByType.put(AdjustmentTypes.Load, new Hashtable<>());
     }
 
     /**
@@ -115,11 +124,11 @@ public class Relationships extends WorldData {
     // endregion
 
     // region Mutators
-    public void setRelationship(Relationship relationship) {
-        setRelationship(relationship.getAssociation(), relationship.score);
+    public void setRelationship(Relationship relationship, String type) {
+        setRelationship(relationship.getAssociation(), relationship.score, type);
     }
 
-    public void setRelationship(Association rel, Integer value) {
+    public void setRelationship(Association rel, Integer value, String type) {
         if (rel.first() == rel.second()) {
             System.out.println(FriendshipMod.modId + ": WARNING - tried to save self-relationship with " + rel.first());
             return; // We don't store relationships with self
@@ -131,31 +140,57 @@ public class Relationships extends WorldData {
         } else {
             associationScores.put(rel, value);
         }
-        lastModified.put(rel, getWorldTime());
+        setRecentlyModified(rel, type);
     }
 
-    public void setRelationship(Mob firstMob, Mob secondMob, Integer value) {
+    public void setRelationship(Mob firstMob, Mob secondMob, Integer value, String type) {
         Association rel = new Association(firstMob.getUniqueID(), secondMob.getUniqueID());
-        setRelationship(rel, value);
+        setRelationship(rel, value, type);
     }
 
-    public void setRelationship(Integer firstMobId, Integer secondMobId, Integer value) {
+    public void setRelationship(Integer firstMobId, Integer secondMobId, Integer value, String type) {
         Association rel = new Association(firstMobId, secondMobId);
-        setRelationship(rel, value);
+        setRelationship(rel, value, type);
     }
     // endregion
 
-    // region Helpers
-    public boolean recentlyModified(Association rel) {
+    // region Recently modified
+    private void setRecentlyModified(Association rel, String type, Long value) {
+        lastModifiedByType.putIfAbsent(type, new Hashtable<>());
+        lastModifiedByType.get(type).put(rel, value);
+    }
+
+    public void setRecentlyModified(Association rel, String type) {
+        lastModifiedByType.putIfAbsent(type, new Hashtable<>());
+        lastModifiedByType.get(type).put(rel, getWorldTime());
+    }
+
+    public void setRecentlyModified(Mob first, Mob second, String type) {
+        setRecentlyModified(new Association(first.getUniqueID(), second.getUniqueID()), type);
+    }
+
+    public void setRecentlyModified(Integer firstMobId, Integer secondMobId, String type) {
+        setRecentlyModified(new Association(firstMobId, secondMobId), type);
+    }
+
+    private long getRecentlyModified(Association rel, String type) {
+        lastModifiedByType.putIfAbsent(type, new Hashtable<>());
+        Hashtable<Association, Long> lastModified = lastModifiedByType.get(type);
+        return lastModified.getOrDefault(rel, 0L);
+    }
+
+    public boolean recentlyModified(Association rel, String type) {
+        lastModifiedByType.putIfAbsent(type, new Hashtable<>());
+        Hashtable<Association, Long> lastModified = lastModifiedByType.get(type);
         return lastModified.get(rel) != null && getWorldEntity().getWorldTime() - lastModified.get(rel) < getWorldEntity().getDayTimeMax() * 1000L;
     }
 
-    public boolean recentlyModified(Mob first, Mob second) {
-        return recentlyModified(new Association(first.getUniqueID(), second.getUniqueID()));
+    public boolean recentlyModified(Mob first, Mob second, String type) {
+        return recentlyModified(new Association(first.getUniqueID(), second.getUniqueID()), type);
     }
 
-    public boolean recentlyModified(Integer firstMobId, Integer secondMobId) {
-        return recentlyModified(new Association(firstMobId, secondMobId));
+    public boolean recentlyModified(Integer firstMobId, Integer secondMobId, String type) {
+        return recentlyModified(new Association(firstMobId, secondMobId), type);
     }
     // endregion
 
@@ -170,11 +205,14 @@ public class Relationships extends WorldData {
             save.addInt(FriendshipMod.modId + "Relationship" + i + "Second", association.second());
             save.addInt(FriendshipMod.modId + "Relationship" + i + "Value", associationScores.get(association));
             save.addLong(
-                    FriendshipMod.modId + "Relationship" + i + "Time",
-                    lastModified.get(association) != null ? lastModified.get(association) : 0
+                    FriendshipMod.modId + "Relationship" + i + "LastTalked",
+                    getRecentlyModified(association, AdjustmentTypes.Talk)
+            );
+            save.addLong(
+                    FriendshipMod.modId + "Relationship" + i + "LastGifted",
+                    getRecentlyModified(association, AdjustmentTypes.Gift)
             );
             i++;
-//            System.out.println(FriendshipMod.modId + ": Saved " + associationOutput((association)));
         }
         System.out.println(FriendshipMod.modId + ": Saved " + associationScores.size() + " relationships");
     }
@@ -187,10 +225,18 @@ public class Relationships extends WorldData {
             int first = save.getInt(FriendshipMod.modId + "Relationship" + i + "First");
             int second = save.getInt(FriendshipMod.modId + "Relationship" + i + "Second");
             int value = save.getInt(FriendshipMod.modId + "Relationship" + i + "Value");
-            long time = save.getLong(FriendshipMod.modId + "Relationship" + i + "Time", 0);
             Association association = new Association(first, second);
-            setRelationship(association, value);
-//            System.out.println(FriendshipMod.modId + ": Loaded " + associationOutput(association));
+            setRelationship(association, value, AdjustmentTypes.Load);
+            setRecentlyModified(
+                    association,
+                    "talk",
+                    save.getLong(FriendshipMod.modId + "Relationship" + i + "LastTalked", 0)
+            );
+            setRecentlyModified(
+                    association,
+                    "talk",
+                    save.getLong(FriendshipMod.modId + "Relationship" + i + "LastGifted", 0)
+            );
         }
         System.out.println(FriendshipMod.modId + ": Loaded " + associationScores.size() + " relationships");
     }

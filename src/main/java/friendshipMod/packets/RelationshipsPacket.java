@@ -48,7 +48,7 @@ public class RelationshipsPacket extends Packet {
     public void applyPacket(WorldEntity worldEntity) {
         Relationships relationships = Relationships.getInstance(worldEntity);
         for (Association association : associationScores.keySet()) {
-            relationships.setRelationship(association, associationScores.get(association));
+            relationships.setRelationship(association, associationScores.get(association), Relationships.AdjustmentTypes.Load);
         }
         for (Association association : associationScores.keySet()) {
             System.out.println(FriendshipMod.modId + ": Set " + relationships.associationOutput(association) + " at " + (worldEntity.isServer() ? "server" : "client"));

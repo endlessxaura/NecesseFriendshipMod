@@ -32,10 +32,6 @@ public class FriendshipInteractionPatch {
         Personalities personalities = Personalities.getInstance(mob.getWorldEntity());
         Relationships relationships = Relationships.getInstance(mob.getWorldEntity());
 
-        if (relationships.recentlyModified(mob, other)) {
-            return;
-        }
-
         if (stageTicker == 20) {
             Relationship relationship = relationships.getRelationship(mob, other);
             float relationshipPercent = (relationship.score + Math.abs(Relationships.min)) / (float) Relationships.getRange();
@@ -80,6 +76,10 @@ public class FriendshipInteractionPatch {
             interactionPositive = GameRandom.globalRandom.getChance(relationshipChance + ticketChance);
         }
 
+        if (relationships.recentlyModified(mob, other, Relationships.AdjustmentTypes.Talk)) {
+            return;
+        }
+
         if (stageTicker == 80) {
             Relationship relationship = relationships.getRelationship(mob, other);
             if (interactionPositive) {
@@ -87,9 +87,9 @@ public class FriendshipInteractionPatch {
             } else {
                 relationship.score -= 1;
             }
-            relationships.setRelationship(relationship);
+            relationships.setRelationship(relationship, Relationships.AdjustmentTypes.Talk);
             mob.getLevel().getServer().network.sendToClientsWithEntity(
-                    new RelationshipPacket(relationship),
+                    new RelationshipPacket(relationship, Relationships.AdjustmentTypes.Talk),
                     mob
             );
             System.out.println(FriendshipMod.modId + ": Server update sent for (" + mob.getUniqueID() + ", " + other.getUniqueID() + ")");

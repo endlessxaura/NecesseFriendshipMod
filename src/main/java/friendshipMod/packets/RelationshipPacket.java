@@ -15,6 +15,7 @@ import necesse.engine.world.WorldEntity;
 
 public class RelationshipPacket extends Packet {
     public Relationship relationship;
+    public String type;
 
     public RelationshipPacket(byte[] data) {
         super(data);
@@ -24,20 +25,23 @@ public class RelationshipPacket extends Packet {
             reader.getNextInt()
         );
         int value = reader.getNextInt();
+        this.type = reader.getNextString();
         relationship = new Relationship(association, value);
     }
 
-    public RelationshipPacket(Relationship relationship) {
+    public RelationshipPacket(Relationship relationship, String type) {
         this.relationship = relationship;
+        this.type = type;
         PacketWriter writer = new PacketWriter(this);
         writer.putNextInt(relationship.getAssociation().first());
         writer.putNextInt(relationship.getAssociation().second());
         writer.putNextInt(relationship.score);
+        writer.putNextString(type);
     }
 
     public void applyPacket(WorldEntity worldEntity) {
         Relationships relationships = Relationships.getInstance(worldEntity);
-        relationships.setRelationship(relationship);
+        relationships.setRelationship(relationship, type);
         System.out.println(FriendshipMod.modId + ": RelationshipPacket applied at " + (worldEntity.isServer() ? "server" : "client"));
     }
 
