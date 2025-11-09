@@ -1,6 +1,7 @@
 package friendshipMod.data;
 
 import friendshipMod.FriendshipMod;
+import friendshipMod.packets.RelationshipPacket;
 import necesse.engine.save.LoadData;
 import necesse.engine.save.SaveData;
 import necesse.engine.world.WorldEntity;
@@ -26,26 +27,34 @@ public class Relationships extends WorldData {
         public static final String Load = "load";
         public static final String Talk = "talk";
         public static final String Gift = "gift";
+        public static final String Decay = "decay";
     }
 
     /**
      * Stores a matrix of unique mob IDs and their friendship scores.
      */
-    protected Hashtable<Association, Integer> associationScores;
+    protected final Hashtable<Association, Integer> associationScores;
 
     /**
      * Stores when a relationship was last modified by type
      */
-    protected Hashtable<String, Hashtable<Association, Long>> lastModifiedByType;
+    protected final Hashtable<String, Hashtable<Association, Long>> lastModifiedByType;
+
+    /**
+     * Contains the last time the decay was checked. Starts at the current world time.
+     */
+    public long lastDecayCheck;
 
     // region Constructors
     public Relationships() {
         super();
         associationScores = new Hashtable<>(30);
-        lastModifiedByType = new Hashtable<>(5);
+        lastModifiedByType = new Hashtable<>(5, 1);
         lastModifiedByType.put(AdjustmentTypes.Gift, new Hashtable<>());
         lastModifiedByType.put(AdjustmentTypes.Talk, new Hashtable<>());
         lastModifiedByType.put(AdjustmentTypes.Load, new Hashtable<>());
+        lastModifiedByType.put(AdjustmentTypes.Decay, new Hashtable<>());
+        lastDecayCheck = getTime();
     }
 
     /**
@@ -137,6 +146,8 @@ public class Relationships extends WorldData {
             associationScores.put(rel, min);
         } else if (value > max) {
             associationScores.put(rel, max);
+        } else if (value == 0) {
+            associationScores.computeIfPresent(rel, (k, i) -> associationScores.remove(k));
         } else {
             associationScores.put(rel, value);
         }
@@ -179,10 +190,23 @@ public class Relationships extends WorldData {
         return lastModified.getOrDefault(rel, 0L);
     }
 
-    public boolean recentlyModified(Association rel, String type) {
+    private boolean recentlyModified(Association rel, Long timespan) {
+        for (String key : lastModifiedByType.keySet()) {
+            if (recentlyModified(rel, key, timespan)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean recentlyModified(Association rel, String type, Long timespan) {
         lastModifiedByType.putIfAbsent(type, new Hashtable<>());
         Hashtable<Association, Long> lastModified = lastModifiedByType.get(type);
-        return lastModified.get(rel) != null && getWorldEntity().getWorldTime() - lastModified.get(rel) < getWorldEntity().getDayTimeMax() * 1000L;
+        return lastModified.get(rel) != null && getWorldEntity().getWorldTime() - lastModified.get(rel) < timespan;
+    }
+
+    public boolean recentlyModified(Association rel, String type) {
+        return recentlyModified(rel, type, getWorldEntity().getDayTimeMax() * 1000L);
     }
 
     public boolean recentlyModified(Mob first, Mob second, String type) {
@@ -239,6 +263,24 @@ public class Relationships extends WorldData {
             );
         }
         System.out.println(FriendshipMod.modId + ": Loaded " + associationScores.size() + " relationships");
+    }
+
+    @Override
+    public void tick() {
+
+        // Relationship decay check every 10 seconds
+        if (isServer() && getTime() - lastDecayCheck > 10000L) {
+            synchronized (associationScores) {
+                for (Association association : associationScores.keySet()) {
+                    if (!recentlyModified(association, getWorldEntity().getDayTimeMax() * 1000L * 5)) {
+                        associationScores.put(association, associationScores.get(association) - 1);
+                        RelationshipPacket packet = new RelationshipPacket(getRelationship(association), AdjustmentTypes.Decay);
+                        this.getServer().network.sendToAllClients(packet);
+                    }
+                }
+            }
+        }
+        super.tick();
     }
     // endregion
 

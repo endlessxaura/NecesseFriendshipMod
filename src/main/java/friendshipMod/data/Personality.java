@@ -189,19 +189,20 @@ public class Personality {
         return new HappinessModifier(value, gameMessage);
     }
 
-    private String getRandomTopic() {
-        int randomThing = GameRandom.globalRandom.getIntBetween(0, likes.size() + dislikes.size() - 1);
-        String thingId;
-        boolean liked = randomThing < likes.size();
-        if (liked) {
-            thingId = likes.get(randomThing);
+    public GameMessage getMessageFor(String thingId, Level level) {
+        Item possibleItem = ItemRegistry.getItem(thingId);
+        if (possibleItem != null) {
+            return getMessageFor(possibleItem);
         } else {
-            thingId = dislikes.get(randomThing - likes.size());
+            Mob possibleMob = MobRegistry.getMob(thingId, level);
+            if (possibleMob != null) {
+                return getMessageFor(possibleMob);
+            }
         }
-        return thingId;
+        return new GameMessageBuilder().append("Hmmm");
     }
 
-    private GameMessage getMessageFor(Item item) {
+    public GameMessage getMessageFor(Item item) {
         InventoryItem inventoryItem = new InventoryItem(item);
         if (item.isFoodItem()) {
             if (this.likes(item)) {
@@ -218,7 +219,7 @@ public class Personality {
         }
     }
 
-    private GameMessage getMessageFor(Mob mob) {
+    public GameMessage getMessageFor(Mob mob) {
         if (this.likes(mob)) {
             return new GameMessageBuilder().append("Have you seen " + mob.getDisplayName().toLowerCase() + "? They are so cute!");
         } else {
@@ -226,17 +227,20 @@ public class Personality {
         }
     }
 
+    private String getRandomTopic() {
+        int randomThing = GameRandom.globalRandom.getIntBetween(0, likes.size() + dislikes.size() - 1);
+        String thingId;
+        boolean liked = randomThing < likes.size();
+        if (liked) {
+            thingId = likes.get(randomThing);
+        } else {
+            thingId = dislikes.get(randomThing - likes.size());
+        }
+        return thingId;
+    }
+
     public GameMessage getRandomMessage(Level level) {
         String thingId = getRandomTopic();
-        Item possibleItem = ItemRegistry.getItem(thingId);
-        if (possibleItem != null) {
-            return getMessageFor(possibleItem);
-        } else {
-            Mob possibleMob = MobRegistry.getMob(thingId, level);
-            if (possibleMob != null) {
-                return getMessageFor(possibleMob);
-            }
-        }
-        return new GameMessageBuilder().append("Hmmm");
+        return getMessageFor(thingId, level);
     }
 }

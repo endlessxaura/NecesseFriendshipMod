@@ -6,6 +6,7 @@ import friendshipMod.data.Personality;
 import friendshipMod.data.Relationship;
 import friendshipMod.data.Relationships;
 import friendshipMod.packets.RelationshipPacket;
+import friendshipMod.utilities.Messages;
 import necesse.engine.localization.message.GameMessage;
 import necesse.engine.localization.message.GameMessageBuilder;
 import necesse.engine.modLoader.annotations.ModMethodPatch;
@@ -56,7 +57,7 @@ public class ShopContainerFormUpdateDialoguePatch {
 
         @Override
         public void run() {
-            conversationForm.reset(container.header, personality.getRandomMessage(container.getClient().getLevel()));
+            conversationForm.reset(container.header, Messages.getRandomMessageFor(container.getContainer().getMob()));
             addConversationOptions(container, conversationForm, personality);
         }
     }
@@ -207,7 +208,7 @@ public class ShopContainerFormUpdateDialoguePatch {
                 container.width,
                 container.height,
                 container.header,
-                personality.getRandomMessage(container.getClient().getLevel())
+                Messages.getRandomMessageFor(container.getContainer().getMob())
         );
         addConversationOptions(
                 container,
