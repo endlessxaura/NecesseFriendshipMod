@@ -18,12 +18,12 @@ public class Messages {
         List<Relationship> allRelationships = relationships.getAll();
         int allTickets = personality.likes.size() + personality.dislikes.size() + allRelationships.size() - 1;
         int ticket = GameRandom.globalRandom.getIntBetween(0, allTickets);
-        if (ticket < personality.likes.size() - 1) {
+        if (ticket < personality.likes.size()) {
             return personality.getMessageFor(personality.likes.get(ticket), mob.getLevel());
         } else {
             ticket -= personality.likes.size();
         }
-        if (ticket < personality.dislikes.size() - 1) {
+        if (ticket < personality.dislikes.size()) {
             return personality.getMessageFor(personality.dislikes.get(ticket), mob.getLevel());
         } else {
             ticket -= personality.dislikes.size();
