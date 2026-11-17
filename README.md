@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> Necesse released Rust and Romance on July 30, 2026. This makes the content of this mod obsolete.
+
 # Introduction
 This mod enables relationships between players and NPCs within a settlement. 
 These relationships impact the happiness, interactions, and prices of the settlers.
